@@ -60,33 +60,13 @@
               "mode": "urlencoded",
               "urlencoded": [
                 {
-                  "key": "grant_type",
-                  "value": "valor_grant_type",
-                  "type": "text"
-                },
-                {
                   "key": "username",
-                  "value": "Nombre de ejemplo",
+                  "value": "admin@example.com",
                   "type": "text"
                 },
                 {
                   "key": "password",
-                  "value": "contraseña123",
-                  "type": "text"
-                },
-                {
-                  "key": "scope",
-                  "value": "",
-                  "type": "text"
-                },
-                {
-                  "key": "client_id",
-                  "value": "valor_client_id",
-                  "type": "text"
-                },
-                {
-                  "key": "client_secret",
-                  "value": "valor_client_secret",
+                  "value": "admin123",
                   "type": "text"
                 }
               ]
