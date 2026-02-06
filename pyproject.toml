@@ -1,0 +1,3 @@
+[tool.poe.tasks]
+dev = "uvicorn app.main:app --reload"
+export-postman = "python export_openapi.py"
