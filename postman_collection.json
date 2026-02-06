@@ -60,18 +60,33 @@
               "mode": "urlencoded",
               "urlencoded": [
                 {
+                  "key": "grant_type",
+                  "value": "valor_grant_type",
+                  "type": "text"
+                },
+                {
                   "key": "username",
-                  "value": "",
+                  "value": "Nombre de ejemplo",
                   "type": "text"
                 },
                 {
                   "key": "password",
-                  "value": "password123",
+                  "value": "contraseña123",
                   "type": "text"
                 },
                 {
                   "key": "scope",
                   "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "valor_client_id",
+                  "type": "text"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "valor_client_secret",
                   "type": "text"
                 }
               ]
@@ -154,7 +169,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"is_superuser\": false,\n  \"password\": \"\"\n}",
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -204,7 +219,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"\"\n}",
+              "raw": "{\n  \"reason\": \"Raz\\u00f3n de ejemplo\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -285,7 +300,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\"\n}",
+              "raw": "{\n  \"name\": \"Nombre de ejemplo\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"icon\": \"icon-example\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -408,7 +423,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"Nombre de ejemplo\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"icon\": \"icon-example\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

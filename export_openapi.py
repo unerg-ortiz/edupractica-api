@@ -14,34 +14,111 @@ from app.main import app
 # Fixed collection ID - Postman will replace existing collection with same ID
 COLLECTION_ID = "edupractica-api-collection-v1"
 
-def get_request_body_schema(content_type, schema_ref, openapi_schema):
-    """Get example body from schema reference."""
-    if not schema_ref:
+def resolve_schema_ref(ref_path, openapi_schema):
+    """Resolve a $ref path to the actual schema."""
+    if not ref_path.startswith("#/"):
+        return None
+    parts = ref_path[2:].split("/")
+    result = openapi_schema
+    for part in parts:
+        if isinstance(result, dict) and part in result:
+            result = result[part]
+        else:
+            return None
+    return result
+
+def generate_example_value(prop_def, prop_name, openapi_schema, required_fields=None):
+    """Generate an example value based on property definition."""
+    required_fields = required_fields or []
+    
+    # Handle $ref
+    if "$ref" in prop_def:
+        ref_schema = resolve_schema_ref(prop_def["$ref"], openapi_schema)
+        if ref_schema:
+            return generate_example_from_schema(ref_schema, openapi_schema)
+        return {}
+    
+    # Handle anyOf (nullable types, unions)
+    if "anyOf" in prop_def:
+        # Find the non-null type
+        for option in prop_def["anyOf"]:
+            if option.get("type") != "null":
+                return generate_example_value(option, prop_name, openapi_schema, required_fields)
         return None
     
-    # Extract schema name from $ref
-    if "$ref" in schema_ref:
-        ref_path = schema_ref["$ref"]
-        schema_name = ref_path.split("/")[-1]
-        schemas = openapi_schema.get("components", {}).get("schemas", {})
-        if schema_name in schemas:
-            schema = schemas[schema_name]
-            # Generate example from properties
-            example = {}
-            for prop_name, prop_def in schema.get("properties", {}).items():
-                if prop_def.get("type") == "string":
-                    if prop_def.get("format") == "email":
-                        example[prop_name] = "user@example.com"
-                    elif prop_def.get("format") == "password":
-                        example[prop_name] = "password123"
-                    else:
-                        example[prop_name] = ""
-                elif prop_def.get("type") == "integer":
-                    example[prop_name] = 0
-                elif prop_def.get("type") == "boolean":
-                    example[prop_name] = prop_def.get("default", False)
-            return example
+    prop_type = prop_def.get("type", "string")
+    prop_format = prop_def.get("format")
+    
+    # Use default if available
+    if "default" in prop_def:
+        return prop_def["default"]
+    
+    # Generate based on type
+    if prop_type == "string":
+        if prop_format == "email":
+            return "usuario@ejemplo.com"
+        elif prop_format == "password":
+            return "contraseña123"
+        elif prop_format == "date":
+            return "2026-01-01"
+        elif prop_format == "date-time":
+            return "2026-01-01T00:00:00Z"
+        elif prop_format == "uri" or prop_format == "url":
+            return "https://ejemplo.com"
+        elif "name" in prop_name.lower():
+            return "Nombre de ejemplo"
+        elif "description" in prop_name.lower():
+            return "Descripción de ejemplo"
+        elif "reason" in prop_name.lower():
+            return "Razón de ejemplo"
+        elif "icon" in prop_name.lower():
+            return "icon-example"
+        else:
+            return f"valor_{prop_name}"
+    elif prop_type == "integer":
+        return 1
+    elif prop_type == "number":
+        return 1.0
+    elif prop_type == "boolean":
+        return True
+    elif prop_type == "array":
+        items = prop_def.get("items", {})
+        item_example = generate_example_value(items, prop_name + "_item", openapi_schema)
+        return [item_example] if item_example is not None else []
+    elif prop_type == "object":
+        return {}
+    
     return None
+
+def generate_example_from_schema(schema, openapi_schema):
+    """Generate a complete example object from a schema."""
+    if not schema or not isinstance(schema, dict):
+        return {}
+    
+    # Handle $ref at top level
+    if "$ref" in schema:
+        ref_schema = resolve_schema_ref(schema["$ref"], openapi_schema)
+        if ref_schema:
+            return generate_example_from_schema(ref_schema, openapi_schema)
+        return {}
+    
+    example = {}
+    properties = schema.get("properties", {})
+    required_fields = schema.get("required", [])
+    
+    for prop_name, prop_def in properties.items():
+        value = generate_example_value(prop_def, prop_name, openapi_schema, required_fields)
+        if value is not None:
+            example[prop_name] = value
+    
+    return example
+
+def get_request_body_example(content_type, schema_def, openapi_schema):
+    """Get example body from schema definition."""
+    if not schema_def:
+        return None
+    
+    return generate_example_from_schema(schema_def, openapi_schema)
 
 def export_postman_collection():
     """Export API as native Postman Collection v2.1 format."""
@@ -158,7 +235,7 @@ def export_postman_collection():
                     content = request_body.get("content", {})
                     if "application/json" in content:
                         schema = content["application/json"].get("schema", {})
-                        example = get_request_body_schema("application/json", schema, openapi_schema)
+                        example = get_request_body_example("application/json", schema, openapi_schema)
                         request["request"]["header"].append({
                             "key": "Content-Type",
                             "value": "application/json"
@@ -174,7 +251,7 @@ def export_postman_collection():
                         }
                     elif "application/x-www-form-urlencoded" in content:
                         schema = content["application/x-www-form-urlencoded"].get("schema", {})
-                        example = get_request_body_schema("form", schema, openapi_schema)
+                        example = get_request_body_example("form", schema, openapi_schema)
                         request["request"]["body"] = {
                             "mode": "urlencoded",
                             "urlencoded": [
