@@ -250,15 +250,26 @@ def export_postman_collection():
                             }
                         }
                     elif "application/x-www-form-urlencoded" in content:
-                        schema = content["application/x-www-form-urlencoded"].get("schema", {})
-                        example = get_request_body_example("form", schema, openapi_schema)
-                        request["request"]["body"] = {
-                            "mode": "urlencoded",
-                            "urlencoded": [
-                                {"key": k, "value": str(v), "type": "text"}
-                                for k, v in (example or {}).items()
-                            ]
-                        }
+                        # Special handling for login endpoint
+                        if "/login" in path or "access-token" in path:
+                            # Only include username and password with predefined values
+                            request["request"]["body"] = {
+                                "mode": "urlencoded",
+                                "urlencoded": [
+                                    {"key": "username", "value": "admin@example.com", "type": "text"},
+                                    {"key": "password", "value": "admin123", "type": "text"}
+                                ]
+                            }
+                        else:
+                            schema = content["application/x-www-form-urlencoded"].get("schema", {})
+                            example = get_request_body_example("form", schema, openapi_schema)
+                            request["request"]["body"] = {
+                                "mode": "urlencoded",
+                                "urlencoded": [
+                                    {"key": k, "value": str(v), "type": "text"}
+                                    for k, v in (example or {}).items()
+                                ]
+                            }
                 
                 tag_folders[tag]["item"].append(request)
     
