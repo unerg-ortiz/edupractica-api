@@ -10,3 +10,12 @@ from .stage import (
     UserStageProgressUpdate,
     StageWithProgress
 )
+from .feedback import (
+    StageFeedback,
+    StageFeedbackCreate,
+    StageFeedbackUpdate,
+    StudentAttempt,
+    StudentAttemptCreate,
+    StageAnalytics,
+    CategoryAnalytics
+)
