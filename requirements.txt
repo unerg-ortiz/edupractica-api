@@ -7,3 +7,5 @@ argon2-cffi
 python-jose[cryptography]
 email-validator
 python-multipart
+httpx
+fastapi-sso

@@ -28,6 +28,40 @@ class CRUDUser:
         db.refresh(db_obj)
         return db_obj
 
+    def get_or_create_oauth(
+        self,
+        db: Session,
+        *,
+        email: str,
+        full_name: str,
+        oauth_provider: str,
+        oauth_id: str,
+    ) -> User:
+        user = self.get_by_email(db, email=email)
+        if user:
+            # Update OAuth info if not present
+            if not user.oauth_provider:
+                user.oauth_provider = oauth_provider
+                user.oauth_id = oauth_id
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            return user
+        
+        # Create new user
+        db_obj = User(
+            email=email,
+            full_name=full_name,
+            oauth_provider=oauth_provider,
+            oauth_id=oauth_id,
+            is_active=True,
+            is_superuser=False,
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
         user = self.get_by_email(db, email=email)
         if not user:
