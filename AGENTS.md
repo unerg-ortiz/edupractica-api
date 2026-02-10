@@ -40,3 +40,4 @@ EduPractica API es una aplicación basada en FastAPI que utiliza SQLite para el 
 - **Type Hints**: Usar sugerencias de tipo (type hints) estándar de Python.
 - **Async**: Usar `async def` para los manejadores de rutas.
 - La Respuesta de la IA SIEMPRE debe ir en español.
+- Cada vez que se cree un nuevo endpoint se debe documentar en `docs/` y debes incluir en la documentación el propósito del endpoint, los datos que espera y los datos o respuesta que retorna, junto con un ejemplo de uso.
