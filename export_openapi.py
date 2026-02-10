@@ -35,7 +35,11 @@ def generate_example_value(prop_def, prop_name, openapi_schema, required_fields=
     if "$ref" in prop_def:
         ref_schema = resolve_schema_ref(prop_def["$ref"], openapi_schema)
         if ref_schema:
-            return generate_example_from_schema(ref_schema, openapi_schema)
+            # If the referenced schema is an object with properties, generate a full object
+            if ref_schema.get("type") == "object" or "properties" in ref_schema:
+                return generate_example_from_schema(ref_schema, openapi_schema)
+            # Otherwise it's a simple type (like Enum), generate value recursively
+            return generate_example_value(ref_schema, prop_name, openapi_schema)
         return {}
     
     # Handle anyOf (nullable types, unions)
@@ -49,6 +53,10 @@ def generate_example_value(prop_def, prop_name, openapi_schema, required_fields=
     prop_type = prop_def.get("type", "string")
     prop_format = prop_def.get("format")
     
+    # Use enum first value if available
+    if "enum" in prop_def and prop_def["enum"]:
+        return prop_def["enum"][0]
+
     # Use default if available
     if "default" in prop_def:
         return prop_def["default"]
@@ -73,6 +81,8 @@ def generate_example_value(prop_def, prop_name, openapi_schema, required_fields=
             return "Razón de ejemplo"
         elif "icon" in prop_name.lower():
             return "icon-example"
+        elif "media_type" in prop_name.lower():
+            return "image"
         else:
             return f"valor_{prop_name}"
     elif prop_type == "integer":
@@ -270,6 +280,40 @@ def export_postman_collection():
                                     for k, v in (example or {}).items()
                                 ]
                             }
+                    elif "multipart/form-data" in content:
+                        schema = content["multipart/form-data"].get("schema", {})
+                        
+                        # Resolve $ref if present
+                        if "$ref" in schema:
+                            schema = resolve_schema_ref(schema["$ref"], openapi_schema) or {}
+                            
+                        properties = schema.get("properties", {})
+                        
+                        formdata = []
+                        for prop_name, prop_def in properties.items():
+                            prop_type = prop_def.get("type", "string")
+                            prop_format = prop_def.get("format", "")
+                            
+                            # Check for binary format or "string" type combined with "binary" format
+                            if prop_format == "binary" or (prop_type == "string" and prop_format == "binary"):
+                                formdata.append({
+                                    "key": prop_name,
+                                    "type": "file",
+                                    "src": []
+                                })
+                            else:
+                                # Generate example value for text fields
+                                value = generate_example_value(prop_def, prop_name, openapi_schema)
+                                formdata.append({
+                                    "key": prop_name,
+                                    "value": str(value) if value is not None else "",
+                                    "type": "text"
+                                })
+                        
+                        request["request"]["body"] = {
+                            "mode": "formdata",
+                            "formdata": formdata
+                        }
                 
                 tag_folders[tag]["item"].append(request)
     
