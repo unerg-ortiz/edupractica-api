@@ -2,11 +2,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
-<<<<<<< HEAD
-from app.api.endpoints import login, users, categories, stages, feedback, oauth
-=======
-from app.api.endpoints import login, users, categories, stages, feedback, analytics
->>>>>>> dev
+from app.api.endpoints import login, users, categories, stages, feedback, oauth, analytics
 
 # Create tables
 Base.metadata.create_all(bind=engine)
