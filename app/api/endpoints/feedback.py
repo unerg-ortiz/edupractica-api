@@ -107,28 +107,6 @@ async def preview_feedback(
     return data
 
 
-# ================= Analytics Endpoints =================
-
-@router.get("/stages/{stage_id}/analytics", response_model=feedback_schemas.StageAnalytics)
-async def get_stage_analytics(
-    stage_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
-):
-    """Get analytics for a specific stage"""
-    return crud_feedback.get_stage_analytics(db, stage_id)
-
-
-@router.get("/analytics/difficult-stages", response_model=List[feedback_schemas.StageAnalytics])
-async def get_difficult_stages(
-    limit: int = 5,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
-):
-    """Get list of most difficult stages based on student performance"""
-    return crud_feedback.get_most_difficult_stages(db, limit)
-
-
 # ================= Student Endpoints =================
 
 @router.post("/stages/{stage_id}/attempts", response_model=feedback_schemas.StudentAttempt)
