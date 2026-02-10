@@ -824,7 +824,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"stage_id\": 1,\n  \"feedback_type\": {},\n  \"sequence_order\": 1,\n  \"max_hints_per_attempt\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": {},\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"is_active\": true\n}",
+              "raw": "{\n  \"stage_id\": 1,\n  \"feedback_type\": \"hint\",\n  \"sequence_order\": 1,\n  \"max_hints_per_attempt\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": \"image\",\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -923,7 +923,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"feedback_type\": {},\n  \"sequence_order\": 1,\n  \"max_hints_per_attempt\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": {},\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"is_active\": true\n}",
+              "raw": "{\n  \"feedback_type\": \"hint\",\n  \"sequence_order\": 1,\n  \"max_hints_per_attempt\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": \"image\",\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1002,6 +1002,21 @@
                   "description": "Path parameter: feedback_id"
                 }
               ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "media_type",
+                  "value": "image",
+                  "type": "text"
+                }
+              ]
             }
           },
           "response": []
@@ -1039,7 +1054,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"feedback_id\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": {},\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"device_type\": \"valor_device_type\"\n}",
+              "raw": "{\n  \"feedback_id\": 1,\n  \"title\": \"valor_title\",\n  \"text_content\": \"valor_text_content\",\n  \"media_type\": \"image\",\n  \"media_url\": \"valor_media_url\",\n  \"preview_settings\": {},\n  \"device_type\": \"valor_device_type\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

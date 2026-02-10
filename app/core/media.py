@@ -33,7 +33,6 @@ def validate_file(file: UploadFile, media_type: str):
     
     # Size check would typically require reading the file or checking content-length header
     # For now we'll assume the web server handles max body size
-    # 
 
 def save_upload_file(file: UploadFile, stage_id: int) -> str:
     """

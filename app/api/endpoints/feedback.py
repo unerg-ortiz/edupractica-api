@@ -156,7 +156,11 @@ async def get_available_hints(
 ):
     """
     Get available hints for a stage.
+    If attempt_id is provided, logic could filter based on usage limits.
+    For now, returns all configured hints for the stage.
     """
+    # Simply return all active hints for the stage
+    # The client/frontend will manage progressive disclosure based on attempt count
     return crud_feedback.get_feedback_by_stage(db, stage_id)
 
 
@@ -169,10 +173,14 @@ async def record_hint_view(
 ):
     """
     Record that a student viewed a specific hint.
+    Enforces the max hints per attempt limit.
     """
     result = crud_feedback.record_feedback_view(db, attempt_id, feedback_id)
     
     if not result:
+        # Check if it was limit reached or just invalid IDs
+        # For simplicity, assuming validation passed but limit reached
+        # A more robust implementation would distinguish errors
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Cannot view hint: Limit reached for this attempt or invalid ID"
