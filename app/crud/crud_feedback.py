@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_
+from sqlalchemy import func, desc, and_, case
 from datetime import datetime
 
 from app.models.feedback import StageFeedback, StudentAttempt, StudentFeedbackView, StageAnalytics
@@ -124,6 +124,11 @@ def create_attempt(
     db.commit()
     db.refresh(db_attempt)
     
+    # If successful, update user progress
+    if attempt.is_successful:
+        from app.crud import crud_stage
+        crud_stage.complete_stage(db, user_id, attempt.stage_id)
+
     # Update analytics asynchronously (or synchronously for simplicity here)
     update_stage_analytics(db, attempt.stage_id)
     
@@ -247,6 +252,7 @@ def _get_or_create_analytics(db: Session, stage_id: int) -> StageAnalytics:
 
 
 def get_stage_analytics(db: Session, stage_id: int) -> StageAnalytics:
+    """Get analytics for a specific stage"""
     analytics = db.query(StageAnalytics).filter(StageAnalytics.stage_id == stage_id).first()
     if not analytics:
         # Generate on demand if missing

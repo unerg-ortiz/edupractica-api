@@ -7,5 +7,12 @@ argon2-cffi
 python-jose[cryptography]
 email-validator
 python-multipart
+<<<<<<< HEAD
 httpx
 fastapi-sso
+=======
+pandas
+reportlab
+openpyxl
+
+>>>>>>> dev
