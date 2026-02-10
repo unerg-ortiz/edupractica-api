@@ -8,6 +8,7 @@ Obtiene una lista de categorías disponibles.
 **Parámetros:**
 - `skip` (query, int): Número de registros a saltar.
 - `limit` (query, int): Número de registros a retornar.
+- `q` (query, str): Filtro opcional por nombre (búsqueda).
 
 **Ejemplo de Respuesta:**
 ```json

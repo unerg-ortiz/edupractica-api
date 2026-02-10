@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
@@ -9,6 +10,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.include_router(login.router, tags=["login"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
@@ -16,9 +20,11 @@ app.include_router(stages.router, prefix="/api", tags=["stages"])
 app.include_router(feedback.router, prefix="/api", tags=["feedback"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to EduPractica API"}
+    return RedirectResponse(url="/static/admin/categories.html")
 
 @app.get("/health")
 def health_check():

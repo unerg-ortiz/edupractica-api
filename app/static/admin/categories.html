@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Panel de Categorías | EduPractica</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #a855f7;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --error: #ef4444;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .title-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .title-section p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            width: 20px;
+            height: 20px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--glass);
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .category-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .category-desc {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .edit-btn {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .edit-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2.5rem;
+            position: relative;
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: filter 0.2s;
+        }
+
+        .btn-primary:disabled {
+            filter: grayscale(1);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Confirmation Dialog */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .confirm-box {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 350px;
+            border: 1px solid var(--border);
+        }
+
+        .confirm-box h3 { margin-bottom: 1rem; }
+        .confirm-box p { color: var(--text-dim); margin-bottom: 1.5rem; }
+
+        /* Toasts */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 2000;
+        }
+
+        .toast.show { transform: translateY(0); }
+        .toast.error { background: var(--error); }
+
+        @media (max-width: 768px) {
+            .container { padding: 1.5rem; }
+            header { flex-direction: column; align-items: flex-start; }
+            .search-box { max-width: 100%; }
+            .category-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-section">
+                <h1>Categorías</h1>
+                <p>Gestiona el contenido de EduPractica</p>
+            </div>
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" id="searchInput" placeholder="Buscar categorías...">
+            </div>
+        </header>
+
+        <div class="category-grid" id="categoryGrid">
+            <!-- Cards will be injected here -->
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Categoría</h2>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="editIcon">Icono (Emoji)</label>
+                    <input type="text" id="editIcon" maxlength="2" placeholder="🐍">
+                </div>
+                <div class="form-group">
+                    <label for="editName">Nombre</label>
+                    <input type="text" id="editName" required maxlength="50">
+                    <small id="nameError" style="color: var(--error); display: none; font-size: 0.8rem; margin-top: 0.3rem;">Este nombre ya existe.</small>
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Descripción</label>
+                    <textarea id="editDescription" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="saveBtn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <h3>¿Guardar cambios?</h3>
+            <p>Se actualizará la información en toda la plataforma.</p>
+            <div style="display: flex; gap: 0.8rem;">
+                <button class="btn-secondary" onclick="hideConfirm()">No, volver</button>
+                <button class="btn-primary" onclick="executeSave()">Sí, guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Operación exitosa</div>
+
+    <script>
+        let categories = [];
+        let currentEditData = null;
+
+        const grid = document.getElementById('categoryGrid');
+        const searchInput = document.getElementById('searchInput');
+        const modal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const saveBtn = document.getElementById('saveBtn');
+        const nameInput = document.getElementById('editName');
+        const nameError = document.getElementById('nameError');
+
+        // Initial Fetch
+        async function fetchCategories(query = '') {
+            try {
+                const response = await fetch(`/categories/?q=${query}`);
+                categories = await response.json();
+                renderCategories(categories);
+            } catch (err) {
+                console.error("Error fetching:", err);
+                showToast("Error al cargar categorías", true);
+            }
+        }
+
+        function renderCategories(list) {
+            grid.innerHTML = list.map(cat => `
+                <div class="category-card" data-id="${cat.id}">
+                    <div class="category-icon">${cat.icon || '📦'}</div>
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-desc">${cat.description || 'Sin descripción'}</div>
+                    <button class="edit-btn" onclick="openEdit(${cat.id})">
+                        <svg style="width:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Editar
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Search logic
+        searchInput.addEventListener('input', (e) => {
+            fetchCategories(e.target.value);
+        });
+
+        // Edit logic
+        function openEdit(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+            
+            currentEditData = cat;
+            document.getElementById('editId').value = cat.id;
+            document.getElementById('editName').value = cat.name;
+            document.getElementById('editDescription').value = cat.description || '';
+            document.getElementById('editIcon').value = cat.icon || '';
+            
+            nameError.style.display = 'none';
+            saveBtn.disabled = false;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Duplicates check
+        nameInput.addEventListener('input', () => {
+            const newName = nameInput.value.trim().toLowerCase();
+            const originalName = currentEditData.name.toLowerCase();
+            
+            if (newName !== originalName) {
+                const exists = categories.some(c => c.name.toLowerCase() === newName && c.id !== currentEditData.id);
+                if (exists) {
+                    nameError.style.display = 'block';
+                    saveBtn.disabled = true;
+                } else {
+                    nameError.style.display = 'none';
+                    saveBtn.disabled = false;
+                }
+            } else {
+                nameError.style.display = 'none';
+                saveBtn.disabled = false;
+            }
+        });
+
+        editForm.onsubmit = (e) => {
+            e.preventDefault();
+            confirmOverlay.style.display = 'flex';
+        };
+
+        function hideConfirm() {
+            confirmOverlay.style.display = 'none';
+        }
+
+        async function executeSave() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                description: document.getElementById('editDescription').value,
+                icon: document.getElementById('editIcon').value
+            };
+
+            try {
+                const res = await fetch(`/categories/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    showToast("Categoría actualizada correctamente");
+                    hideConfirm();
+                    closeModal();
+                    fetchCategories(searchInput.value);
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || "Error al actualizar", true);
+                }
+            } catch (err) {
+                showToast("Error de conexión", true);
+            }
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            if (isError) toast.classList.add('error');
+            else toast.classList.remove('error');
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Load initial
+        fetchCategories();
+    </script>
+</body>
+</html>
