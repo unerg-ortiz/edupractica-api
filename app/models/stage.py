@@ -37,5 +37,5 @@ class UserStageProgress(Base):
     is_unlocked = Column(Boolean, default=False)
     
     # Relationships
-    user = relationship("User", backref="stage_progress")
+    user = relationship("User", back_populates="stage_progress")
     stage = relationship("Stage", back_populates="user_progress")

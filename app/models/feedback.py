@@ -68,7 +68,7 @@ class StudentAttempt(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     # Relationships
-    user = relationship("User", backref="attempts")
+    user = relationship("User", back_populates="attempts")
     stage = relationship("Stage", backref="attempts")
     feedback_views = relationship("StudentFeedbackView", back_populates="attempt", cascade="all, delete-orphan")
 
