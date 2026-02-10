@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
-from app.api.endpoints import login, users, categories, stages, feedback
+from app.api.endpoints import login, users, categories, stages, feedback, analytics
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -14,6 +14,7 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
 app.include_router(stages.router, prefix="/api", tags=["stages"])
 app.include_router(feedback.router, prefix="/api", tags=["feedback"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 @app.get("/")
 def read_root():
