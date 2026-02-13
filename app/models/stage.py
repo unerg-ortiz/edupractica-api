@@ -17,9 +17,12 @@ class Stage(Base):
     content = Column(String, nullable=True)  # Educational content
     challenge_description = Column(String, nullable=True)  # Challenge to complete this stage
     is_active = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)  # For archived topics
+    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
     category = relationship("Category", backref="stages")
+    professor = relationship("User", backref="stages")
     user_progress = relationship("UserStageProgress", back_populates="stage")
 
 

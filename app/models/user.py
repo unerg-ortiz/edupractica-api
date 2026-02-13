@@ -10,6 +10,7 @@ class User(Base):
     full_name = Column(String, index=True)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    is_professor = Column(Boolean, default=False)
     
     # Blocking fields
     is_blocked = Column(Boolean, default=False)

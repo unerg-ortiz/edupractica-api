@@ -69,6 +69,8 @@ async def get_category_stages_with_progress(
             content=stage.content,
             challenge_description=stage.challenge_description,
             is_active=stage.is_active,
+            is_archived=stage.is_archived,
+            professor_id=stage.professor_id,
             is_unlocked=progress.is_unlocked if progress else False,
             is_completed=progress.is_completed if progress else False
         )
@@ -97,13 +99,13 @@ async def get_stage(
 async def create_stage(
     stage: stage_schemas.StageCreate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
     """
-    Create a new stage (admin only).
+    Create a new stage.
     Stages should be created in sequential order.
     """
-    return crud_stage.create_stage(db, stage)
+    return crud_stage.create_stage(db, stage, professor_id=current_user.id)
 
 
 @router.put("/stages/{stage_id}", response_model=stage_schemas.Stage)
@@ -111,15 +113,17 @@ async def update_stage(
     stage_id: int,
     stage_update: stage_schemas.StageUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Update a stage (admin only)"""
+    """Update a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only update your own stages")
+        
     updated_stage = crud_stage.update_stage(db, stage_id, stage_update)
-    if not updated_stage:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return updated_stage
 
 
@@ -127,15 +131,17 @@ async def update_stage(
 async def delete_stage(
     stage_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Soft delete a stage (admin only)"""
+    """Soft delete a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+        
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own stages")
+        
     success = crud_stage.delete_stage(db, stage_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return None
 
 

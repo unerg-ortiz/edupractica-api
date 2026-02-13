@@ -28,9 +28,9 @@ def get_stages_by_category(
     )
 
 
-def create_stage(db: Session, stage: StageCreate) -> Stage:
+def create_stage(db: Session, stage: StageCreate, professor_id: Optional[int] = None) -> Stage:
     """Create a new stage"""
-    db_stage = Stage(**stage.model_dump())
+    db_stage = Stage(**stage.model_dump(), professor_id=professor_id)
     db.add(db_stage)
     db.commit()
     db.refresh(db_stage)

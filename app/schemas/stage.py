@@ -10,6 +10,8 @@ class StageBase(BaseModel):
     content: Optional[str] = Field(None, description="Educational content for this stage")
     challenge_description: Optional[str] = Field(None, description="Challenge to complete this stage")
     is_active: bool = Field(True, description="Whether this stage is active")
+    is_archived: bool = Field(False, description="Whether this stage is archived")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who owns this stage")
 
 class StageCreate(StageBase):
     """Schema for creating a new stage"""
@@ -70,6 +72,8 @@ class StageWithProgress(BaseModel):
     content: Optional[str]
     challenge_description: Optional[str]
     is_active: bool
+    is_archived: bool = False
+    professor_id: Optional[int] = None
     is_unlocked: bool = Field(..., description="Whether this stage is unlocked for the user")
     is_completed: bool = Field(..., description="Whether the user has completed this stage")
 
