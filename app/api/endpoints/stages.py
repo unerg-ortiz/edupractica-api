@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import and_, desc
 from sqlalchemy.orm import Session
 
 from app.api import deps
@@ -226,12 +227,11 @@ async def review_stage(
 ):
     """
     Approve or reject a stage (Admin only).
-    If approved, it becomes visible to students.
     If rejected, it remains invisible and includes feedback comments.
     """
-    status = "approved" if review.approved else "rejected"
+    review_status = "approved" if review.approved else "rejected"
     updated_stage = crud_stage.set_approval_status(
-        db, stage_id, status=status, comment=review.comment
+        db, stage_id, status=review_status, comment=review.comment
     )
     
     if not updated_stage:
