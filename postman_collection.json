@@ -330,6 +330,66 @@
           "response": []
         },
         {
+          "name": "List Categories Enhanced",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Number of records to skip"
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Maximum number of records to return"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or description"
+                },
+                {
+                  "key": "order_by",
+                  "value": "name",
+                  "description": "Field to order by"
+                },
+                {
+                  "key": "order_direction",
+                  "value": "asc",
+                  "description": "Order direction"
+                },
+                {
+                  "key": "detect_duplicates",
+                  "value": "False",
+                  "description": "Enable duplicate detection"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Read Category",
           "request": {
             "auth": {

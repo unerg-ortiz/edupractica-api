@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.sql import func
 from app.db.base import Base
 
 class Category(Base):
@@ -8,3 +9,4 @@ class Category(Base):
     name = Column(String(50), unique=True, index=True, nullable=False)
     description = Column(String, nullable=True)
     icon = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

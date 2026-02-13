@@ -27,16 +27,17 @@ Create a new category (Admin only).
   "id": 1,
   "name": "Python Básico",
   "description": "Introducción a la programación con Python",
-  "icon": "🐍"
+  "icon": "🐍",
+  "created_at": "2026-02-13T01:24:00Z"
 }
 ```
 
 ---
 
-### 2. List Categories
+### 2. List Categories (Basic)
 **GET** `/categories/`
 
-Get all categories with pagination.
+Get all categories with pagination. Includes basic information only.
 
 **Authentication:** Required (Any user)
 
@@ -51,20 +52,58 @@ Get all categories with pagination.
     "id": 1,
     "name": "Python Básico",
     "description": "Introducción a la programación con Python",
-    "icon": "🐍"
-  },
-  {
-    "id": 2,
-    "name": "JavaScript Avanzado",
-    "description": "Conceptos avanzados de JavaScript",
-    "icon": "⚡"
+    "icon": "🐍",
+    "created_at": "2026-02-13T01:24:00Z"
   }
 ]
 ```
 
 ---
 
-### 3. Get Category (Basic)
+### 3. List Categories Enhanced (Admin Panel)
+**GET** `/categories/list`
+
+Advanced listing for administration. Supports search, ordering, and duplicate detection.
+
+**Authentication:** Required (Superuser/Admin)
+
+**Query Parameters:**
+- `skip` (int): Number of records to skip
+- `limit` (int): Maximum records to return (max 500)
+- `search` (string): Filter by name or description
+- `order_by` (string): `name` or `created_at`
+- `order_direction` (string): `asc` or `desc`
+- `detect_duplicates` (boolean): If true, calculates similarity scores between categories
+
+**Response (200 OK):**
+```json
+{
+  "total": 45,
+  "skip": 0,
+  "limit": 10,
+  "items": [
+    {
+      "id": 1,
+      "name": "Python Básico",
+      "description": "Introducción a la programación...",
+      "icon": "🐍",
+      "created_at": "2026-02-13T01:24:00Z",
+      "total_stages": 5,
+      "similarity_score": 85.5
+    }
+  ]
+}
+```
+
+**Features:**
+- **Paginación**: Manejo eficiente de grandes volúmenes de datos.
+- **Búsqueda**: Filtro dinámico por nombre o descripción.
+- **Ordenamiento**: Alfabético o por fecha de creación.
+- **Detección de Duplicados**: El campo `similarity_score` indica qué tan parecida es esta categoría a otra existente (70-100%).
+
+---
+
+### 4. Get Category (Basic)
 **GET** `/categories/{category_id}`
 
 Get basic information about a specific category.

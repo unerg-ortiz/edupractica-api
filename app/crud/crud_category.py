@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 from app.models.category import Category
 from app.models.stage import Stage, UserStageProgress
 from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryMetrics
+from typing import List, Optional, Tuple
+from difflib import SequenceMatcher
 
 def get_category(db: Session, category_id: int):
     return db.query(Category).filter(Category.id == category_id).first()
@@ -10,7 +12,106 @@ def get_category(db: Session, category_id: int):
 def get_category_by_name(db: Session, name: str):
     return db.query(Category).filter(Category.name == name).first()
 
+
+def calculate_similarity(str1: str, str2: str) -> float:
+    """Calculate similarity between two strings (0-100)"""
+    if not str1 or not str2:
+        return 0.0
+    return SequenceMatcher(None, str1.lower(), str2.lower()).ratio() * 100
+
+
+def get_categories_enhanced(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None,
+    order_by: str = "name",
+    order_direction: str = "asc",
+    detect_duplicates: bool = False
+) -> Tuple[List[dict], int]:
+    """
+    Get categories with advanced filtering and duplicate detection.
+    
+    Args:
+        db: Database session
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        search: Search term for name or description
+        order_by: Field to order by (name, created_at, total_stages)
+        order_direction: Order direction (asc, desc)
+        detect_duplicates: Whether to calculate similarity scores
+    
+    Returns:
+        Tuple of (list of category dicts with metadata, total count)
+    """
+    # Base query
+    query = db.query(Category)
+    
+    # Apply search filter
+    if search:
+        search_filter = or_(
+            Category.name.ilike(f"%{search}%"),
+            Category.description.ilike(f"%{search}%")
+        )
+        query = query.filter(search_filter)
+    
+    # Get total count before pagination
+    total_count = query.count()
+    
+    # Apply ordering
+    order_column = Category.name  # default
+    if order_by == "created_at":
+        order_column = Category.created_at
+    elif order_by == "name":
+        order_column = Category.name
+    
+    if order_direction.lower() == "desc":
+        query = query.order_by(order_column.desc())
+    else:
+        query = query.order_by(order_column.asc())
+    
+    # Apply pagination
+    categories = query.offset(skip).limit(limit).all()
+    
+    # Build result with stage counts
+    result = []
+    all_category_names = [c.name for c in db.query(Category).all()] if detect_duplicates else []
+    
+    for category in categories:
+        # Count stages
+        stage_count = db.query(func.count(Stage.id)).filter(
+            and_(Stage.category_id == category.id, Stage.is_active == True)
+        ).scalar() or 0
+        
+        # Calculate similarity if duplicate detection is enabled
+        similarity_score = None
+        if detect_duplicates:
+            # Find most similar category (excluding itself)
+            max_similarity = 0.0
+            for other_name in all_category_names:
+                if other_name != category.name:
+                    similarity = calculate_similarity(category.name, other_name)
+                    if similarity > max_similarity:
+                        max_similarity = similarity
+            
+            # Only report if similarity is significant (> 70%)
+            similarity_score = max_similarity if max_similarity > 70 else None
+        
+        result.append({
+            "id": category.id,
+            "name": category.name,
+            "description": category.description,
+            "icon": category.icon,
+            "created_at": category.created_at,
+            "total_stages": stage_count,
+            "similarity_score": similarity_score
+        })
+    
+    return result, total_count
+
+
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
+    """Simple category listing (backward compatibility)"""
     return db.query(Category).offset(skip).limit(limit).all()
 
 def create_category(db: Session, category: CategoryCreate):

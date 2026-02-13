@@ -28,8 +28,62 @@ def read_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ):
+    """
+    Get all categories (simple list).
+    For advanced filtering, use /categories/list endpoint.
+    """
     categories = crud_category.get_categories(db, skip=skip, limit=limit)
     return categories
+
+
+@router.get("/list")
+def list_categories_enhanced(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
+    search: Optional[str] = Query(None, description="Search by name or description"),
+    order_by: str = Query("name", pattern="^(name|created_at)$", description="Field to order by"),
+    order_direction: str = Query("asc", pattern="^(asc|desc)$", description="Order direction"),
+    detect_duplicates: bool = Query(False, description="Enable duplicate detection"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Get enhanced category list with advanced features (Admin only).
+    
+    Features:
+    - **Pagination**: Use skip and limit parameters
+    - **Search**: Filter by name or description
+    - **Ordering**: Sort by name or created_at (asc/desc)
+    - **Duplicate Detection**: Highlights similar category names (>70% similarity)
+    
+    Response includes:
+    - Total count of matching categories
+    - List of categories with stage counts
+    - Similarity scores when duplicate detection is enabled
+    
+    Example:
+    ```
+    GET /categories/list?search=python&order_by=created_at&order_direction=desc&detect_duplicates=true
+    ```
+    """
+    from app.schemas.category import CategoryList
+    
+    categories, total_count = crud_category.get_categories_enhanced(
+        db=db,
+        skip=skip,
+        limit=limit,
+        search=search,
+        order_by=order_by,
+        order_direction=order_direction,
+        detect_duplicates=detect_duplicates
+    )
+    
+    return {
+        "total": total_count,
+        "skip": skip,
+        "limit": limit,
+        "items": categories
+    }
 
 @router.get("/{category_id}", response_model=Category)
 def read_category(
@@ -85,6 +139,7 @@ def read_category_detail(
         name=db_category.name,
         description=db_category.description,
         icon=db_category.icon,
+        created_at=db_category.created_at,
         stages=stages_summary,
         metrics=metrics
     )
