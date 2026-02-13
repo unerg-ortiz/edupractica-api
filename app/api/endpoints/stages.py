@@ -1,11 +1,12 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
 from app.models.user import User
+from app.core import media
 
 router = APIRouter()
 
@@ -68,6 +69,9 @@ async def get_category_stages_with_progress(
             description=stage.description,
             content=stage.content,
             challenge_description=stage.challenge_description,
+            media_url=stage.media_url,
+            media_type=stage.media_type,
+            media_filename=stage.media_filename,
             is_active=stage.is_active,
             is_unlocked=progress.is_unlocked if progress else False,
             is_completed=progress.is_completed if progress else False
@@ -190,3 +194,48 @@ async def initialize_category_progress(
         db, current_user.id, category_id
     )
     return progress_list
+
+
+@router.post("/stages/{stage_id}/media", response_model=stage_schemas.Stage)
+async def upload_stage_media(
+    stage_id: int,
+    file: UploadFile = File(...),
+    media_type: str = Form(...),  # "image", "audio", or "video"
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Upload a media file (video, audio, or image) for a stage.
+    This content serves as the base before the challenge.
+    
+    Allowed formats:
+    - Video: MP4
+    - Audio: MP3, WAV
+    - Image: JPG, PNG
+    
+    Limit: 100MB
+    """
+    stage = crud_stage.get_stage(db, stage_id)
+    if not stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stage not found"
+        )
+    
+    # Validate file type and size
+    media.validate_file(file, media_type)
+    
+    # Delete old file if exists
+    if stage.media_url:
+        media.delete_file(stage.media_url)
+    
+    # Save new file
+    file_path = media.save_upload_file(file, stage_id, sub_dir="stages")
+    
+    # Update stage record
+    stage_update = stage_schemas.StageUpdate(
+        media_url=file_path,
+        media_type=media_type,
+        media_filename=file.filename
+    )
+    return crud_stage.update_stage(db, stage_id, stage_update)

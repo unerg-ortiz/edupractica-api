@@ -694,7 +694,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"is_active\": true\n}",
+              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"media_url\": \"valor_media_url\",\n  \"media_type\": \"image\",\n  \"media_filename\": \"Nombre de ejemplo\",\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -772,6 +772,58 @@
                   "key": "category_id",
                   "value": "",
                   "description": "Path parameter: category_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Stage Media",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stages/:stage_id/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stages",
+                ":stage_id",
+                "media"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "media_type",
+                  "value": "image",
+                  "type": "text"
                 }
               ]
             }
