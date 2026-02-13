@@ -15,23 +15,65 @@ def get_stages_by_category(
     db: Session, 
     category_id: int, 
     skip: int = 0, 
-    limit: int = 100
+    limit: int = 100,
+    status: Optional[str] = "approved"
 ) -> List[Stage]:
-    """Get all stages for a category, ordered by sequence"""
+    """Get stages for a category, filtered by status if provided"""
+    query = db.query(Stage).filter(Stage.category_id == category_id, Stage.is_active == True)
+    if status:
+        query = query.filter(Stage.approval_status == status)
+    
     return (
-        db.query(Stage)
-        .filter(Stage.category_id == category_id, Stage.is_active == True)
-        .order_by(Stage.order)
+        query.order_by(Stage.order)
         .offset(skip)
         .limit(limit)
         .all()
     )
 
 
-def create_stage(db: Session, stage: StageCreate) -> Stage:
-    """Create a new stage"""
+def get_pending_stages(db: Session, skip: int = 0, limit: int = 100) -> List[Stage]:
+    """Get all stages pending approval (Admin only)"""
+    return (
+        db.query(Stage)
+        .filter(Stage.approval_status == "pending", Stage.is_active == True)
+        .order_by(Stage.submitted_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def create_stage(db: Session, stage: StageCreate, professor_id: Optional[int] = None) -> Stage:
+    """Create a new stage with professor tracking and pending status"""
     db_stage = Stage(**stage.model_dump())
+    if professor_id:
+        db_stage.professor_id = professor_id
+    
+    # Always start as pending unless it's a superuser creating it already approved?
+    # For now, let's keep it pending as per requirements "profesores cargan, admin aprueba"
+    db_stage.approval_status = "pending"
+    
     db.add(db_stage)
+    db.commit()
+    db.refresh(db_stage)
+    return db_stage
+
+
+def set_approval_status(
+    db: Session, 
+    stage_id: int, 
+    status: str, 
+    comment: Optional[str] = None
+) -> Optional[Stage]:
+    """Approve or reject a stage (Admin only)"""
+    db_stage = get_stage(db, stage_id)
+    if not db_stage:
+        return None
+    
+    db_stage.approval_status = status
+    if comment:
+        db_stage.approval_comment = comment
+    
     db.commit()
     db.refresh(db_stage)
     return db_stage
@@ -178,7 +220,8 @@ def initialize_user_progress_for_category(
     Initialize user progress for all stages in a category.
     Only the first stage (order=1) is unlocked, all others are locked.
     """
-    stages = get_stages_by_category(db, category_id)
+    # Only initialize for approved stages
+    stages = get_stages_by_category(db, category_id, status="approved")
     progress_list = []
     
     for stage in stages:
