@@ -8,11 +8,13 @@ class UserBase(BaseModel):
     is_superuser: bool = False
     is_professor: bool = False
     full_name: Optional[str] = None
+    role: Optional[str] = "student"
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
     password: str
+    role: str = "student"
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
