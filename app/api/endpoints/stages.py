@@ -22,9 +22,11 @@ async def get_category_stages(
 ):
     """
     Get all stages for a specific category.
-    Returns stages ordered by their sequence.
+    Students only see APPROVED stages.
+    Admins see ALL stages in this category.
     """
-    stages = crud_stage.get_stages_by_category(db, category_id, skip, limit)
+    status_filter = "approved" if not current_user.is_superuser else None
+    stages = crud_stage.get_stages_by_category(db, category_id, skip, limit, status=status_filter)
     return stages
 
 
@@ -40,9 +42,11 @@ async def get_category_stages_with_progress(
     
     The first stage (order=1) is always unlocked.
     Subsequent stages are locked until the previous stage is completed.
+    
+    Students only see APPROVED stages.
     """
-    # Get all stages for the category
-    stages = crud_stage.get_stages_by_category(db, category_id)
+    # Get all approved stages for the category
+    stages = crud_stage.get_stages_by_category(db, category_id, status="approved")
     
     if not stages:
         return []
@@ -202,6 +206,48 @@ async def initialize_category_progress(
         db, current_user.id, category_id
     )
     return progress_list
+
+
+# ================= Admin Review Endpoints =================
+
+@router.get("/review/pending", response_model=List[stage_schemas.Stage])
+async def get_pending_review(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    List all stages pending approval (Admin only).
+    """
+    return crud_stage.get_pending_stages(db, skip=skip, limit=limit)
+
+
+@router.post("/stages/{stage_id}/review", response_model=stage_schemas.Stage)
+async def review_stage(
+    stage_id: int,
+    review: stage_schemas.StageReview,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Approve or reject a stage (Admin only).
+    If rejected, it remains invisible and includes feedback comments.
+    """
+    review_status = "approved" if review.approved else "rejected"
+    updated_stage = crud_stage.set_approval_status(
+        db, stage_id, status=review_status, comment=review.comment
+    )
+    
+    if not updated_stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stage not found"
+        )
+        
+    # TODO: Trigger notification to professor_id
+    
+    return updated_stage
 @router.post("/stages/{stage_id}/interactive", response_model=stage_schemas.Stage)
 async def update_interactive_challenge(
     stage_id: int,
