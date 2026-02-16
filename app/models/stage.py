@@ -21,9 +21,12 @@ class Stage(Base):
     media_filename = Column(String(255), nullable=True) # Original filename
     interactive_config = Column(JSON, nullable=True) # Configuration for drag-and-drop/matching games
     is_active = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)  # For archived topics
+    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
     category = relationship("Category", backref="stages")
+    professor = relationship("User", backref="stages")
     user_progress = relationship("UserStageProgress", back_populates="stage")
 
 

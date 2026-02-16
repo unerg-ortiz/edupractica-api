@@ -149,7 +149,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"is_professor\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -239,6 +239,34 @@
                   "value": "",
                   "description": "Path parameter: user_id"
                 }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
               ]
             }
           },
@@ -1561,6 +1589,236 @@
                 "analytics",
                 "export",
                 "pdf"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transfer",
+      "item": [
+        {
+          "name": "Search Colleagues",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/search-colleagues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "search-colleagues"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "request"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiver_email\": \"usuario@ejemplo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Transfer Requests",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests/:request_id/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests",
+                ":request_id",
+                "accept"
+              ],
+              "variable": [
+                {
+                  "key": "request_id",
+                  "value": "",
+                  "description": "Path parameter: request_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests/:request_id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests",
+                ":request_id",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "request_id",
+                  "value": "",
+                  "description": "Path parameter: request_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": ""
+                }
               ]
             }
           },

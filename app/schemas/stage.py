@@ -16,6 +16,8 @@ class StageBase(BaseModel):
     media_filename: Optional[str] = Field(None, description="Original filename of the media")
     interactive_config: Optional[InteractiveConfig] = Field(None, description="Configuration for interactive games")
     is_active: bool = Field(True, description="Whether this stage is active")
+    is_archived: bool = Field(False, description="Whether this stage is archived")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who owns this stage")
 
 class StageCreate(StageBase):
     """Schema for creating a new stage"""
@@ -84,6 +86,8 @@ class StageWithProgress(BaseModel):
     media_filename: Optional[str]
     interactive_config: Optional[InteractiveConfig]
     is_active: bool
+    is_archived: bool = False
+    professor_id: Optional[int] = None
     is_unlocked: bool = Field(..., description="Whether this stage is unlocked for the user")
     is_completed: bool = Field(..., description="Whether the user has completed this stage")
 
