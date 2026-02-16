@@ -4,8 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
+<<<<<<< HEAD
 from app.api.endpoints import login, users, categories, stages, feedback, analytics
 import os
+=======
+from app.api.endpoints import login, users, categories, stages, feedback, oauth, analytics
+>>>>>>> HU78
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -34,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(login.router, tags=["login"])
+app.include_router(oauth.router, prefix="/auth", tags=["oauth"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
 app.include_router(stages.router, prefix="/api", tags=["stages"])

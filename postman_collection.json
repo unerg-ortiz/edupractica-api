@@ -77,6 +77,127 @@
       ]
     },
     {
+      "name": "Oauth",
+      "item": [
+        {
+          "name": "Google Login",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google Callback",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Microsoft Login",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/microsoft/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "microsoft",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Microsoft Callback",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/microsoft/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "microsoft",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Users",
       "item": [
         {
@@ -177,7 +298,11 @@
             },
             "body": {
               "mode": "raw",
+<<<<<<< HEAD
               "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"is_professor\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
+=======
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"oauth_provider\": \"valor_oauth_provider\",\n  \"oauth_id\": \"valor_oauth_id\",\n  \"password\": \"valor_password\"\n}",
+>>>>>>> HU78
               "options": {
                 "raw": {
                   "language": "json"
