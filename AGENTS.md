@@ -3,6 +3,15 @@
 ## Descripción del Proyecto
 EduPractica API es una aplicación basada en FastAPI que utiliza SQLite para el desarrollo. Proporciona recursos de práctica educativa.
 
+## Ubicación de Archivos Generados por IA
+> [!NOTE]
+> Para mantener limpio el código fuente, sigue estas reglas estrictas para archivos generados por IA:
+
+- **Pruebas y Tests**: Todo código generado únicamente para pruebas debe ir en `.vibe/tests/`. Si el directorio no existe, CRÉALO.
+- **Documentación**: Documentos, notas o explicaciones extendidas generadas van en `.vibe/docs/`.
+- **Otros**: Cualquier archivo que no sea parte del producto final debe ubicarse dentro de `.vibe/`.
+- **Excepción**: Los archivos de implementación real (features, bugfixes) sí van en su estructura correspondiente (`app/`, `components/`, etc).
+
 ## Comandos de Configuración
 - Instalar dependencias: `pip install -r requirements.txt`
 - Iniciar servidor de desarrollo: `uvicorn app.main:app --reload`
@@ -30,3 +39,5 @@ EduPractica API es una aplicación basada en FastAPI que utiliza SQLite para el 
 - **Python**: Seguir PEP 8.
 - **Type Hints**: Usar sugerencias de tipo (type hints) estándar de Python.
 - **Async**: Usar `async def` para los manejadores de rutas.
+- La Respuesta de la IA SIEMPRE debe ir en español.
+- Cada vez que se cree un nuevo endpoint se debe documentar en `docs/` y debes incluir en la documentación el propósito del endpoint, los datos que espera y los datos o respuesta que retorna, junto con un ejemplo de uso.
