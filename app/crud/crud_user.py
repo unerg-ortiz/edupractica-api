@@ -28,6 +28,60 @@ class CRUDUser:
         db.refresh(db_obj)
         return db_obj
 
+    def get_or_create_oauth(
+        self,
+        db: Session,
+        *,
+        email: str,
+        full_name: str,
+        oauth_provider: str,
+        oauth_id: str,
+    ) -> User:
+        user = self.get_by_email(db, email=email)
+        if user:
+            # Update OAuth info if not present
+            if not user.oauth_provider:
+                user.oauth_provider = oauth_provider
+                user.oauth_id = oauth_id
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            return user
+        
+        # Create new user
+        db_obj = User(
+            email=email,
+            full_name=full_name,
+            oauth_provider=oauth_provider,
+            oauth_id=oauth_id,
+            is_active=True,
+            is_superuser=False,
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+    
+    def remove_completely(self, db: Session, *, user_id: int) -> bool:
+        """Remove a user and all their data completely (GDPR)."""
+        user = self.get(db, id=user_id)
+        if not user:
+            return False
+            
+        # 1. Delete audit logs where user was the actor
+        db.query(AuditLog).filter(AuditLog.actor_id == user_id).delete()
+        
+        # 2. Delete audit logs where user was the target
+        db.query(AuditLog).filter(
+            AuditLog.target_type == "USER", 
+            AuditLog.target_id == str(user_id)
+        ).delete()
+        
+        # 3. Delete the user (cascades to StudentAttempt and StudentFeedbackView)
+        db.delete(user)
+        db.commit()
+        return True
+
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
         user = self.get_by_email(db, email=email)
         if not user:

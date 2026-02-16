@@ -9,6 +9,18 @@ from app.api import deps
 
 router = APIRouter()
 
+@router.delete("/me", response_model=schemas.User)
+def delete_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete own user profile and all associated data.
+    """
+    crud.user.remove_completely(db, user_id=current_user.id)
+    return current_user
+
 @router.get("/", response_model=List[schemas.User])
 def read_users(
     db: Session = Depends(deps.get_db),
