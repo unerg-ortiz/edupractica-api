@@ -1533,79 +1533,6 @@
           "response": []
         },
         {
-          "name": "Get Stage Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/stages/:stage_id/analytics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "stages",
-                ":stage_id",
-                "analytics"
-              ],
-              "variable": [
-                {
-                  "key": "stage_id",
-                  "value": "",
-                  "description": "Path parameter: stage_id"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Difficult Stages",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/analytics/difficult-stages",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "analytics",
-                "difficult-stages"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5",
-                  "description": ""
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Record Attempt",
           "request": {
             "auth": {
@@ -1839,6 +1766,80 @@
                 "analytics",
                 "export",
                 "pdf"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stage Analytics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/stages/:stage_id/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "stages",
+                ":stage_id",
+                "analytics"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Difficult Stages",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/difficult-stages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "difficult-stages"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": ""
+                }
               ]
             }
           },

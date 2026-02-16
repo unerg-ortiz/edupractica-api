@@ -12,8 +12,10 @@ from app.api import deps
 from app.api.deps import get_db
 from app.models.user import User
 from app.services.analytics import AnalyticsService
+from app.crud import crud_feedback
+from app.schemas import feedback as feedback_schemas
 
-router = APIRouter()
+router = APIRouter(tags=["analytics"])
 
 @router.get("/dashboard", response_model=dict)
 def get_dashboard_summary(
@@ -115,3 +117,22 @@ def export_progress_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.get("/stages/{stage_id}/analytics", response_model=feedback_schemas.StageAnalytics)
+def get_stage_analytics(
+    stage_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """Get analytics for a specific stage"""
+    return crud_feedback.get_stage_analytics(db, stage_id)
+
+
+@router.get("/difficult-stages", response_model=List[feedback_schemas.StageAnalytics])
+def get_difficult_stages(
+    limit: int = 5,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """Get list of most difficult stages based on student performance"""
+    return crud_feedback.get_most_difficult_stages(db, limit)
