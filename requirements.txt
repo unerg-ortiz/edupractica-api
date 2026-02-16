@@ -10,4 +10,5 @@ python-multipart
 pandas
 reportlab
 openpyxl
+Pillow>=10.0.0
 

@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.api import deps
@@ -7,6 +7,7 @@ from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
 from app.schemas.interactive import InteractiveConfig
 from app.models.user import User
+from app.core import media
 
 router = APIRouter()
 
