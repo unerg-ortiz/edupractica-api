@@ -29,9 +29,12 @@ class Stage(Base):
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
     
     is_active = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)  # For archived topics
+    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
     category = relationship("Category", backref="stages")
+    professor = relationship("User", backref="stages")
     user_progress = relationship("UserStageProgress", back_populates="stage")
 
 

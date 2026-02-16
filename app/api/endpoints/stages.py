@@ -1,6 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, desc
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.api import deps
@@ -8,6 +7,7 @@ from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
 from app.schemas.interactive import InteractiveConfig
 from app.models.user import User
+from app.core import media
 
 router = APIRouter()
 
@@ -79,6 +79,8 @@ async def get_category_stages_with_progress(
             media_filename=stage.media_filename,
             interactive_config=stage.interactive_config,
             is_active=stage.is_active,
+            is_archived=stage.is_archived,
+            professor_id=stage.professor_id,
             is_unlocked=progress.is_unlocked if progress else False,
             is_completed=progress.is_completed if progress else False
         )
@@ -107,13 +109,12 @@ async def get_stage(
 async def create_stage(
     stage: stage_schemas.StageCreate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user) # Professors can create
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
     """
     Create a new stage.
-    Stages created by ANYONE start as 'pending' approval.
+    Stages should be created in sequential order.
     """
-    # In a real app, we'd check if current_user has 'Professor' role
     return crud_stage.create_stage(db, stage, professor_id=current_user.id)
 
 
@@ -122,15 +123,17 @@ async def update_stage(
     stage_id: int,
     stage_update: stage_schemas.StageUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Update a stage (admin only)"""
+    """Update a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only update your own stages")
+        
     updated_stage = crud_stage.update_stage(db, stage_id, stage_update)
-    if not updated_stage:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return updated_stage
 
 
@@ -138,15 +141,17 @@ async def update_stage(
 async def delete_stage(
     stage_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Soft delete a stage (admin only)"""
+    """Soft delete a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+        
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own stages")
+        
     success = crud_stage.delete_stage(db, stage_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return None
 
 

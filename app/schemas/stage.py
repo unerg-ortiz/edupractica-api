@@ -21,6 +21,8 @@ class StageBase(BaseModel):
     approval_comment: Optional[str] = Field(None, description="Feedback from the administrator")
     submitted_at: Optional[datetime] = Field(None, description="When the stage was submitted for review")
     is_active: bool = Field(True, description="Whether this stage is active")
+    is_archived: bool = Field(False, description="Whether this stage is archived")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who owns this stage")
 
 class StageCreate(StageBase):
     """Schema for creating a new stage"""
@@ -96,6 +98,8 @@ class StageWithProgress(BaseModel):
     media_filename: Optional[str]
     interactive_config: Optional[InteractiveConfig]
     is_active: bool
+    is_archived: bool = False
+    professor_id: Optional[int] = None
     is_unlocked: bool = Field(..., description="Whether this stage is unlocked for the user")
     is_completed: bool = Field(..., description="Whether the user has completed this stage")
 
