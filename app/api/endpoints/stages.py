@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
+from app.schemas.interactive import InteractiveConfig
 from app.models.user import User
 from app.core import media
 
@@ -72,6 +73,7 @@ async def get_category_stages_with_progress(
             media_url=stage.media_url,
             media_type=stage.media_type,
             media_filename=stage.media_filename,
+            interactive_config=stage.interactive_config,
             is_active=stage.is_active,
             is_unlocked=progress.is_unlocked if progress else False,
             is_completed=progress.is_completed if progress else False
@@ -194,48 +196,23 @@ async def initialize_category_progress(
         db, current_user.id, category_id
     )
     return progress_list
-
-
-@router.post("/stages/{stage_id}/media", response_model=stage_schemas.Stage)
-async def upload_stage_media(
+@router.post("/stages/{stage_id}/interactive", response_model=stage_schemas.Stage)
+async def update_interactive_challenge(
     stage_id: int,
-    file: UploadFile = File(...),
-    media_type: str = Form(...),  # "image", "audio", or "video"
+    config: InteractiveConfig,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser)
 ):
     """
-    Upload a media file (video, audio, or image) for a stage.
-    This content serves as the base before the challenge.
-    
-    Allowed formats:
-    - Video: MP4
-    - Audio: MP3, WAV
-    - Image: JPG, PNG
-    
-    Limit: 100MB
+    Configure the interactive challenge (Drag and Drop/Matching) for a stage.
+    Admin only (Professor role).
     """
-    stage = crud_stage.get_stage(db, stage_id)
-    if not stage:
+    updated_stage = crud_stage.update_stage(
+        db, stage_id, stage_schemas.StageUpdate(interactive_config=config)
+    )
+    if not updated_stage:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Stage not found"
         )
-    
-    # Validate file type and size
-    media.validate_file(file, media_type)
-    
-    # Delete old file if exists
-    if stage.media_url:
-        media.delete_file(stage.media_url)
-    
-    # Save new file
-    file_path = media.save_upload_file(file, stage_id, sub_dir="stages")
-    
-    # Update stage record
-    stage_update = stage_schemas.StageUpdate(
-        media_url=file_path,
-        media_type=media_type,
-        media_filename=file.filename
-    )
-    return crud_stage.update_stage(db, stage_id, stage_update)
+    return updated_stage

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -19,6 +19,7 @@ class Stage(Base):
     media_url = Column(String, nullable=True)  # Path to uploaded video/audio/image
     media_type = Column(String(20), nullable=True)  # 'video', 'audio', or 'image'
     media_filename = Column(String(255), nullable=True) # Original filename
+    interactive_config = Column(JSON, nullable=True) # Configuration for drag-and-drop/matching games
     is_active = Column(Boolean, default=True)
     
     # Relationships
