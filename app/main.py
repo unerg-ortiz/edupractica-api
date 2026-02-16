@@ -17,6 +17,9 @@ if not os.path.exists(uploads_dir):
     os.makedirs(uploads_dir)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.include_router(login.router, tags=["login"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
@@ -25,9 +28,11 @@ app.include_router(feedback.router, prefix="/api", tags=["feedback"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(transfer.router, prefix="/api/transfer", tags=["transfer"])
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to EduPractica API"}
+    return RedirectResponse(url="/static/admin/categories.html")
 
 @app.get("/health")
 def health_check():

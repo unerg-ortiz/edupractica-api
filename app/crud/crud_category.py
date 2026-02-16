@@ -110,9 +110,11 @@ def get_categories_enhanced(
     return result, total_count
 
 
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    """Simple category listing (backward compatibility)"""
-    return db.query(Category).offset(skip).limit(limit).all()
+def get_categories(db: Session, skip: int = 0, limit: int = 100, name: str = None):
+    query = db.query(Category)
+    if name:
+        query = query.filter(Category.name.ilike(f"%{name}%"))
+    return query.offset(skip).limit(limit).all()
 
 def create_category(db: Session, category: CategoryCreate):
     db_category = Category(

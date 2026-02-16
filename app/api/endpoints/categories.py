@@ -25,6 +25,7 @@ def create_category(
 def read_categories(
     skip: int = 0, 
     limit: int = 100, 
+    q: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ):
@@ -32,7 +33,7 @@ def read_categories(
     Get all categories (simple list).
     For advanced filtering, use /categories/list endpoint.
     """
-    categories = crud_category.get_categories(db, skip=skip, limit=limit)
+    categories = crud_category.get_categories(db, skip=skip, limit=limit, name=q)
     return categories
 
 
