@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from app.schemas.interactive import InteractiveConfig
+
 class StageBase(BaseModel):
     """Base schema for Stage"""
     category_id: int = Field(..., description="ID of the category this stage belongs to")
@@ -9,6 +11,10 @@ class StageBase(BaseModel):
     description: Optional[str] = Field(None, description="Description of the stage")
     content: Optional[str] = Field(None, description="Educational content for this stage")
     challenge_description: Optional[str] = Field(None, description="Challenge to complete this stage")
+    media_url: Optional[str] = Field(None, description="URL or path to the media file")
+    media_type: Optional[str] = Field(None, description="Type of media ('video', 'audio', 'image')")
+    media_filename: Optional[str] = Field(None, description="Original filename of the media")
+    interactive_config: Optional[InteractiveConfig] = Field(None, description="Configuration for interactive games")
     is_active: bool = Field(True, description="Whether this stage is active")
     is_archived: bool = Field(False, description="Whether this stage is archived")
     professor_id: Optional[int] = Field(None, description="ID of the professor who owns this stage")
@@ -25,6 +31,10 @@ class StageUpdate(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     challenge_description: Optional[str] = None
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
+    media_filename: Optional[str] = None
+    interactive_config: Optional[InteractiveConfig] = None
     is_active: Optional[bool] = None
 
 class Stage(StageBase):
@@ -71,6 +81,10 @@ class StageWithProgress(BaseModel):
     description: Optional[str]
     content: Optional[str]
     challenge_description: Optional[str]
+    media_url: Optional[str]
+    media_type: Optional[str]
+    media_filename: Optional[str]
+    interactive_config: Optional[InteractiveConfig]
     is_active: bool
     is_archived: bool = False
     professor_id: Optional[int] = None

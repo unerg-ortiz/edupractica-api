@@ -1,11 +1,13 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
+from app.schemas.interactive import InteractiveConfig
 from app.models.user import User
+from app.core import media
 
 router = APIRouter()
 
@@ -68,6 +70,10 @@ async def get_category_stages_with_progress(
             description=stage.description,
             content=stage.content,
             challenge_description=stage.challenge_description,
+            media_url=stage.media_url,
+            media_type=stage.media_type,
+            media_filename=stage.media_filename,
+            interactive_config=stage.interactive_config,
             is_active=stage.is_active,
             is_archived=stage.is_archived,
             professor_id=stage.professor_id,
@@ -196,3 +202,23 @@ async def initialize_category_progress(
         db, current_user.id, category_id
     )
     return progress_list
+@router.post("/stages/{stage_id}/interactive", response_model=stage_schemas.Stage)
+async def update_interactive_challenge(
+    stage_id: int,
+    config: InteractiveConfig,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Configure the interactive challenge (Drag and Drop/Matching) for a stage.
+    Admin only (Professor role).
+    """
+    updated_stage = crud_stage.update_stage(
+        db, stage_id, stage_schemas.StageUpdate(interactive_config=config)
+    )
+    if not updated_stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stage not found"
+        )
+    return updated_stage

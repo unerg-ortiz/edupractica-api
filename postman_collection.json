@@ -358,6 +358,66 @@
           "response": []
         },
         {
+          "name": "List Categories Enhanced",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Number of records to skip"
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Maximum number of records to return"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or description"
+                },
+                {
+                  "key": "order_by",
+                  "value": "name",
+                  "description": "Field to order by"
+                },
+                {
+                  "key": "order_direction",
+                  "value": "asc",
+                  "description": "Order direction"
+                },
+                {
+                  "key": "detect_duplicates",
+                  "value": "False",
+                  "description": "Enable duplicate detection"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Read Category",
           "request": {
             "auth": {
@@ -470,6 +530,85 @@
                   "key": "category_id",
                   "value": "",
                   "description": "Path parameter: category_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Read Category Detail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/:category_id/detail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id",
+                "detail"
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Path parameter: category_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category Students",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/:category_id/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id",
+                "students"
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Path parameter: category_id"
+                }
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search students by name or email"
                 }
               ]
             }
@@ -644,7 +783,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"is_active\": true\n}",
+              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"media_url\": \"valor_media_url\",\n  \"media_type\": \"image\",\n  \"media_filename\": \"Nombre de ejemplo\",\n  \"interactive_config\": {\n    \"challenge_type\": \"matching\",\n    \"instructions\": \"valor_instructions\",\n    \"elements\": [\n      {\n        \"id\": \"valor_id\",\n        \"type\": \"text\",\n        \"content\": \"valor_content\",\n        \"media_url\": \"valor_media_url\",\n        \"label\": \"valor_label\"\n      }\n    ],\n    \"matching_pairs\": [\n      {\n        \"left_id\": \"valor_left_id\",\n        \"right_id\": \"valor_right_id\"\n      }\n    ],\n    \"classification_categories\": [\n      {\n        \"id\": \"valor_id\",\n        \"title\": \"valor_title\",\n        \"correct_element_ids\": [\n          \"valor_correct_element_ids_item\"\n        ]\n      }\n    ],\n    \"correct_order\": [\n      \"valor_correct_order_item\"\n    ],\n    \"show_confetti\": true,\n    \"time_limit_seconds\": 1\n  },\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -722,7 +861,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"is_active\": true,\n  \"is_archived\": false,\n  \"professor_id\": 1\n}",
+              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"media_url\": \"valor_media_url\",\n  \"media_type\": \"image\",\n  \"media_filename\": \"Nombre de ejemplo\",\n  \"interactive_config\": {\n    \"challenge_type\": \"matching\",\n    \"instructions\": \"valor_instructions\",\n    \"elements\": [\n      {\n        \"id\": \"valor_id\",\n        \"type\": \"text\",\n        \"content\": \"valor_content\",\n        \"media_url\": \"valor_media_url\",\n        \"label\": \"valor_label\"\n      }\n    ],\n    \"matching_pairs\": [\n      {\n        \"left_id\": \"valor_left_id\",\n        \"right_id\": \"valor_right_id\"\n      }\n    ],\n    \"classification_categories\": [\n      {\n        \"id\": \"valor_id\",\n        \"title\": \"valor_title\",\n        \"correct_element_ids\": [\n          \"valor_correct_element_ids_item\"\n        ]\n      }\n    ],\n    \"correct_order\": [\n      \"valor_correct_order_item\"\n    ],\n    \"show_confetti\": true,\n    \"time_limit_seconds\": 1\n  },\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -802,6 +941,57 @@
                   "description": "Path parameter: category_id"
                 }
               ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Interactive Challenge",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stages/:stage_id/interactive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stages",
+                ":stage_id",
+                "interactive"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_type\": \"matching\",\n  \"instructions\": \"valor_instructions\",\n  \"elements\": [\n    {\n      \"id\": \"valor_id\",\n      \"type\": \"text\",\n      \"content\": \"valor_content\",\n      \"media_url\": \"valor_media_url\",\n      \"label\": \"valor_label\"\n    }\n  ],\n  \"matching_pairs\": [\n    {\n      \"left_id\": \"valor_left_id\",\n      \"right_id\": \"valor_right_id\"\n    }\n  ],\n  \"classification_categories\": [\n    {\n      \"id\": \"valor_id\",\n      \"title\": \"valor_title\",\n      \"correct_element_ids\": [\n        \"valor_correct_element_ids_item\"\n      ]\n    }\n  ],\n  \"correct_order\": [\n    \"valor_correct_order_item\"\n  ],\n  \"show_confetti\": true,\n  \"time_limit_seconds\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
