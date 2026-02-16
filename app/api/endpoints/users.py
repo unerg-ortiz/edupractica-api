@@ -22,6 +22,26 @@ def read_users(
     users = crud.user.get_multi(db, skip=skip, limit=limit)
     return users
 
+@router.post("/signup", response_model=schemas.User)
+def signup(
+    *,
+    db: Session = Depends(deps.get_db),
+    user_in: schemas.UserCreate,
+) -> Any:
+    """
+    Public signup endpoint for new users.
+    """
+    user = crud.user.get_by_email(db, email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
+        )
+    # Ensure superuser flag cannot be set via public signup
+    user_in.is_superuser = False
+    user = crud.user.create(db, obj_in=user_in)
+    return user
+
 @router.post("/", response_model=schemas.User)
 def create_user(
     *,
