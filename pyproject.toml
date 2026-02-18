@@ -1,3 +1,27 @@
+[project]
+name = "edupractica-api"
+version = "0.1.0"
+description = "FastAPI backend for Edupractica"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+    "sqlalchemy>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "passlib[bcrypt]",
+    "argon2-cffi",
+    "python-jose[cryptography]",
+    "email-validator",
+    "python-multipart",
+    "httpx",
+    "fastapi-sso",
+    "pandas",
+    "reportlab",
+    "openpyxl",
+    "Pillow>=10.0.0",
+]
+
 [tool.poe.tasks]
 dev = "uvicorn app.main:app --reload"
 export-postman = "python export_openapi.py"
