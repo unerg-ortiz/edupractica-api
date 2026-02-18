@@ -4,12 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
-<<<<<<< HEAD
-from app.api.endpoints import login, users, categories, stages, feedback, analytics
-import os
-=======
 from app.api.endpoints import login, users, categories, stages, feedback, oauth, analytics
->>>>>>> HU78
 
 # Create tables
 Base.metadata.create_all(bind=engine)
