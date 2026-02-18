@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
+
+from app.schemas.interactive import InteractiveConfig
 
 class StageBase(BaseModel):
     """Base schema for Stage"""
@@ -9,7 +12,17 @@ class StageBase(BaseModel):
     description: Optional[str] = Field(None, description="Description of the stage")
     content: Optional[str] = Field(None, description="Educational content for this stage")
     challenge_description: Optional[str] = Field(None, description="Challenge to complete this stage")
+    media_url: Optional[str] = Field(None, description="URL or path to the media file")
+    media_type: Optional[str] = Field(None, description="Type of media ('video', 'audio', 'image')")
+    media_filename: Optional[str] = Field(None, description="Original filename of the media")
+    interactive_config: Optional[InteractiveConfig] = Field(None, description="Configuration for interactive games")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who created this stage")
+    approval_status: str = Field("pending", description="Current status: pending, approved, rejected")
+    approval_comment: Optional[str] = Field(None, description="Feedback from the administrator")
+    submitted_at: Optional[datetime] = Field(None, description="When the stage was submitted for review")
     is_active: bool = Field(True, description="Whether this stage is active")
+    is_archived: bool = Field(False, description="Whether this stage is archived")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who owns this stage")
 
 class StageCreate(StageBase):
     """Schema for creating a new stage"""
@@ -23,7 +36,18 @@ class StageUpdate(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     challenge_description: Optional[str] = None
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
+    media_filename: Optional[str] = None
+    interactive_config: Optional[InteractiveConfig] = None
+    approval_status: Optional[str] = None
+    approval_comment: Optional[str] = None
     is_active: Optional[bool] = None
+
+class StageReview(BaseModel):
+    """Schema for approving or rejecting a stage"""
+    approved: bool = Field(..., description="True to approve, False to reject")
+    comment: Optional[str] = Field(None, description="Reason for rejection or feedback")
 
 class Stage(StageBase):
     """Schema for returning stage data"""
@@ -69,7 +93,13 @@ class StageWithProgress(BaseModel):
     description: Optional[str]
     content: Optional[str]
     challenge_description: Optional[str]
+    media_url: Optional[str]
+    media_type: Optional[str]
+    media_filename: Optional[str]
+    interactive_config: Optional[InteractiveConfig]
     is_active: bool
+    is_archived: bool = False
+    professor_id: Optional[int] = None
     is_unlocked: bool = Field(..., description="Whether this stage is unlocked for the user")
     is_completed: bool = Field(..., description="Whether the user has completed this stage")
 

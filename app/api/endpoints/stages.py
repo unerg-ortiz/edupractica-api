@@ -1,11 +1,13 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.crud import crud_stage
 from app.schemas import stage as stage_schemas
+from app.schemas.interactive import InteractiveConfig
 from app.models.user import User
+from app.core import media
 
 router = APIRouter()
 
@@ -20,9 +22,11 @@ async def get_category_stages(
 ):
     """
     Get all stages for a specific category.
-    Returns stages ordered by their sequence.
+    Students only see APPROVED stages.
+    Admins see ALL stages in this category.
     """
-    stages = crud_stage.get_stages_by_category(db, category_id, skip, limit)
+    status_filter = "approved" if not current_user.is_superuser else None
+    stages = crud_stage.get_stages_by_category(db, category_id, skip, limit, status=status_filter)
     return stages
 
 
@@ -38,9 +42,11 @@ async def get_category_stages_with_progress(
     
     The first stage (order=1) is always unlocked.
     Subsequent stages are locked until the previous stage is completed.
+    
+    Students only see APPROVED stages.
     """
-    # Get all stages for the category
-    stages = crud_stage.get_stages_by_category(db, category_id)
+    # Get all approved stages for the category
+    stages = crud_stage.get_stages_by_category(db, category_id, status="approved")
     
     if not stages:
         return []
@@ -68,7 +74,13 @@ async def get_category_stages_with_progress(
             description=stage.description,
             content=stage.content,
             challenge_description=stage.challenge_description,
+            media_url=stage.media_url,
+            media_type=stage.media_type,
+            media_filename=stage.media_filename,
+            interactive_config=stage.interactive_config,
             is_active=stage.is_active,
+            is_archived=stage.is_archived,
+            professor_id=stage.professor_id,
             is_unlocked=progress.is_unlocked if progress else False,
             is_completed=progress.is_completed if progress else False
         )
@@ -97,13 +109,13 @@ async def get_stage(
 async def create_stage(
     stage: stage_schemas.StageCreate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
     """
-    Create a new stage (admin only).
+    Create a new stage.
     Stages should be created in sequential order.
     """
-    return crud_stage.create_stage(db, stage)
+    return crud_stage.create_stage(db, stage, professor_id=current_user.id)
 
 
 @router.put("/stages/{stage_id}", response_model=stage_schemas.Stage)
@@ -111,15 +123,17 @@ async def update_stage(
     stage_id: int,
     stage_update: stage_schemas.StageUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Update a stage (admin only)"""
+    """Update a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only update your own stages")
+        
     updated_stage = crud_stage.update_stage(db, stage_id, stage_update)
-    if not updated_stage:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return updated_stage
 
 
@@ -127,15 +141,17 @@ async def update_stage(
 async def delete_stage(
     stage_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Soft delete a stage (admin only)"""
+    """Soft delete a stage"""
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+        
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own stages")
+        
     success = crud_stage.delete_stage(db, stage_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
     return None
 
 
@@ -190,3 +206,65 @@ async def initialize_category_progress(
         db, current_user.id, category_id
     )
     return progress_list
+
+
+# ================= Admin Review Endpoints =================
+
+@router.get("/review/pending", response_model=List[stage_schemas.Stage])
+async def get_pending_review(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    List all stages pending approval (Admin only).
+    """
+    return crud_stage.get_pending_stages(db, skip=skip, limit=limit)
+
+
+@router.post("/stages/{stage_id}/review", response_model=stage_schemas.Stage)
+async def review_stage(
+    stage_id: int,
+    review: stage_schemas.StageReview,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Approve or reject a stage (Admin only).
+    If rejected, it remains invisible and includes feedback comments.
+    """
+    review_status = "approved" if review.approved else "rejected"
+    updated_stage = crud_stage.set_approval_status(
+        db, stage_id, status=review_status, comment=review.comment
+    )
+    
+    if not updated_stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stage not found"
+        )
+        
+    # TODO: Trigger notification to professor_id
+    
+    return updated_stage
+@router.post("/stages/{stage_id}/interactive", response_model=stage_schemas.Stage)
+async def update_interactive_challenge(
+    stage_id: int,
+    config: InteractiveConfig,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser)
+):
+    """
+    Configure the interactive challenge (Drag and Drop/Matching) for a stage.
+    Admin only (Professor role).
+    """
+    updated_stage = crud_stage.update_stage(
+        db, stage_id, stage_schemas.StageUpdate(interactive_config=config)
+    )
+    if not updated_stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stage not found"
+        )
+    return updated_stage

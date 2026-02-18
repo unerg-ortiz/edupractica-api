@@ -9,6 +9,18 @@ from app.api import deps
 
 router = APIRouter()
 
+@router.delete("/me", response_model=schemas.User)
+def delete_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete own user profile and all associated data.
+    """
+    crud.user.remove_completely(db, user_id=current_user.id)
+    return current_user
+
 @router.get("/", response_model=List[schemas.User])
 def read_users(
     db: Session = Depends(deps.get_db),
@@ -87,6 +99,37 @@ def block_user(
     user = crud.user.block_user(db, db_obj=user, reason=block_request.reason, admin_id=current_user.id)
     return user
 
+@router.delete("/me", response_model=schemas.User)
+def deactivate_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Deactivate own account and archive topics if professor.
+    """
+    if current_user.is_superuser:
+        raise HTTPException(
+            status_code=400,
+            detail="Superusers cannot deactivate themselves via this endpoint"
+        )
+    
+    # Archive topics if professor
+    if current_user.is_professor:
+        db.query(models.Stage).filter(models.Stage.professor_id == current_user.id).update(
+            {models.Stage.is_archived: True}
+        )
+    
+    current_user.is_active = False
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    
+    # Audit log
+    crud.user.block_user(db, db_obj=current_user, reason="Self-deactivation", admin_id=current_user.id)
+    
+    return current_user
+
 @router.delete("/{user_id}", response_model=schemas.User)
 def delete_user(
     *,
@@ -116,3 +159,4 @@ def delete_user(
     
     deleted_user = crud.user.delete(db, id=user_id, admin_id=current_user.id)
     return deleted_user
+

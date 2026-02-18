@@ -90,16 +90,21 @@ Bloquea a un usuario específico, impidiendo su acceso. Requiere rol de superusu
 ## DELETE /users/{user_id}
 
 **Descripción:**
-Elimina un usuario del sistema (soft delete o eliminación física según implementación). Requiere rol de superusuario.
+Elimina un usuario del sistema por su ID. Requiere rol de superusuario. Un superusuario no puede eliminarse a sí mismo mediante este endpoint.
+
+## DELETE /users/me
+
+**Descripción:**
+Permite que el usuario autenticado elimine su propia cuenta y toda su información personal asociada (intentos de etapas, registros de auditoría y perfil), cumpliendo con las normativas de privacidad (GDPR).
 
 **Ejemplo de Respuesta:**
 ```json
 {
-  "email": "student@example.com",
-  "is_active": false,
+  "email": "mi-correo@ejemplo.com",
+  "is_active": true,
   "is_superuser": false,
-  "full_name": "Student User",
-  "id": 2,
+  "full_name": "Mi Nombre",
+  "id": 5,
   "is_blocked": false,
   "block_reason": null
 }

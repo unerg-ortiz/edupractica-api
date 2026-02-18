@@ -6,8 +6,11 @@ class UserBase(BaseModel):
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = True
     is_superuser: bool = False
+    is_professor: bool = False
     full_name: Optional[str] = None
     role: Optional[str] = "student"
+    oauth_provider: Optional[str] = None
+    oauth_id: Optional[str] = None
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):

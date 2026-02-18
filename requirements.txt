@@ -7,7 +7,9 @@ argon2-cffi
 python-jose[cryptography]
 email-validator
 python-multipart
+httpx
+fastapi-sso
 pandas
 reportlab
 openpyxl
-
+Pillow>=10.0.0

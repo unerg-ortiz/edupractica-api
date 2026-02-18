@@ -71,3 +71,24 @@ def get_current_active_superuser(
             detail="The user doesn't have enough privileges"
         )
     return current_user
+
+def get_current_active_professor(
+    current_user: models.User = Depends(get_current_active_user),
+) -> models.User:
+    """Get current active user with professor privileges"""
+    if not current_user.is_professor and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have professor privileges"
+        )
+    return current_user
+
+def get_current_professor_or_admin(
+    current_user: models.User = Depends(get_current_active_user),
+) -> models.User:
+    if not (current_user.is_professor or current_user.is_superuser):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges"
+        )
+    return current_user

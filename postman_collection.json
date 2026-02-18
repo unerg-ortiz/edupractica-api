@@ -77,8 +77,157 @@
       ]
     },
     {
+      "name": "Oauth",
+      "item": [
+        {
+          "name": "Google Login",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google Callback",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Microsoft Login",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/microsoft/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "microsoft",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Microsoft Callback",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/microsoft/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "microsoft",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Users",
       "item": [
+        {
+          "name": "Delete Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Read Users",
           "request": {
@@ -149,7 +298,11 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
+<<<<<<< HEAD
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"is_professor\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"password\": \"valor_password\"\n}",
+=======
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"is_active\": true,\n  \"is_superuser\": false,\n  \"full_name\": \"Nombre de ejemplo\",\n  \"oauth_provider\": \"valor_oauth_provider\",\n  \"oauth_id\": \"valor_oauth_id\",\n  \"password\": \"valor_password\"\n}",
+>>>>>>> HU78
               "options": {
                 "raw": {
                   "language": "json"
@@ -243,6 +396,34 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Deactivate Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -323,6 +504,71 @@
                   "key": "limit",
                   "value": "100",
                   "description": ""
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Categories Enhanced",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Number of records to skip"
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Maximum number of records to return"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or description"
+                },
+                {
+                  "key": "order_by",
+                  "value": "name",
+                  "description": "Field to order by"
+                },
+                {
+                  "key": "order_direction",
+                  "value": "asc",
+                  "description": "Order direction"
+                },
+                {
+                  "key": "detect_duplicates",
+                  "value": "False",
+                  "description": "Enable duplicate detection"
                 }
               ]
             }
@@ -442,6 +688,85 @@
                   "key": "category_id",
                   "value": "",
                   "description": "Path parameter: category_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Read Category Detail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/:category_id/detail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id",
+                "detail"
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Path parameter: category_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category Students",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/:category_id/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id",
+                "students"
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Path parameter: category_id"
+                }
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search students by name or email"
                 }
               ]
             }
@@ -616,7 +941,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"is_active\": true\n}",
+              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"media_url\": \"valor_media_url\",\n  \"media_type\": \"image\",\n  \"media_filename\": \"Nombre de ejemplo\",\n  \"interactive_config\": {\n    \"challenge_type\": \"matching\",\n    \"instructions\": \"valor_instructions\",\n    \"elements\": [\n      {\n        \"id\": \"valor_id\",\n        \"type\": \"text\",\n        \"content\": \"valor_content\",\n        \"media_url\": \"valor_media_url\",\n        \"label\": \"valor_label\"\n      }\n    ],\n    \"matching_pairs\": [\n      {\n        \"left_id\": \"valor_left_id\",\n        \"right_id\": \"valor_right_id\"\n      }\n    ],\n    \"classification_categories\": [\n      {\n        \"id\": \"valor_id\",\n        \"title\": \"valor_title\",\n        \"correct_element_ids\": [\n          \"valor_correct_element_ids_item\"\n        ]\n      }\n    ],\n    \"correct_order\": [\n      \"valor_correct_order_item\"\n    ],\n    \"show_confetti\": true,\n    \"time_limit_seconds\": 1\n  },\n  \"approval_status\": \"valor_approval_status\",\n  \"approval_comment\": \"valor_approval_comment\",\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -694,7 +1019,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"is_active\": true\n}",
+              "raw": "{\n  \"category_id\": 1,\n  \"order\": 1,\n  \"title\": \"valor_title\",\n  \"description\": \"Descripci\\u00f3n de ejemplo\",\n  \"content\": \"valor_content\",\n  \"challenge_description\": \"Descripci\\u00f3n de ejemplo\",\n  \"media_url\": \"valor_media_url\",\n  \"media_type\": \"image\",\n  \"media_filename\": \"Nombre de ejemplo\",\n  \"interactive_config\": {\n    \"challenge_type\": \"matching\",\n    \"instructions\": \"valor_instructions\",\n    \"elements\": [\n      {\n        \"id\": \"valor_id\",\n        \"type\": \"text\",\n        \"content\": \"valor_content\",\n        \"media_url\": \"valor_media_url\",\n        \"label\": \"valor_label\"\n      }\n    ],\n    \"matching_pairs\": [\n      {\n        \"left_id\": \"valor_left_id\",\n        \"right_id\": \"valor_right_id\"\n      }\n    ],\n    \"classification_categories\": [\n      {\n        \"id\": \"valor_id\",\n        \"title\": \"valor_title\",\n        \"correct_element_ids\": [\n          \"valor_correct_element_ids_item\"\n        ]\n      }\n    ],\n    \"correct_order\": [\n      \"valor_correct_order_item\"\n    ],\n    \"show_confetti\": true,\n    \"time_limit_seconds\": 1\n  },\n  \"professor_id\": 1,\n  \"approval_status\": \"pending\",\n  \"approval_comment\": \"valor_approval_comment\",\n  \"submitted_at\": \"2026-01-01T00:00:00Z\",\n  \"is_active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -774,6 +1099,149 @@
                   "description": "Path parameter: category_id"
                 }
               ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Review",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/review/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "review",
+                "pending"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Review Stage",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stages/:stage_id/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stages",
+                ":stage_id",
+                "review"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"comment\": \"valor_comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Interactive Challenge",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stages/:stage_id/interactive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stages",
+                ":stage_id",
+                "interactive"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_type\": \"matching\",\n  \"instructions\": \"valor_instructions\",\n  \"elements\": [\n    {\n      \"id\": \"valor_id\",\n      \"type\": \"text\",\n      \"content\": \"valor_content\",\n      \"media_url\": \"valor_media_url\",\n      \"label\": \"valor_label\"\n    }\n  ],\n  \"matching_pairs\": [\n    {\n      \"left_id\": \"valor_left_id\",\n      \"right_id\": \"valor_right_id\"\n    }\n  ],\n  \"classification_categories\": [\n    {\n      \"id\": \"valor_id\",\n      \"title\": \"valor_title\",\n      \"correct_element_ids\": [\n        \"valor_correct_element_ids_item\"\n      ]\n    }\n  ],\n  \"correct_order\": [\n    \"valor_correct_order_item\"\n  ],\n  \"show_confetti\": true,\n  \"time_limit_seconds\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -1065,79 +1533,6 @@
           "response": []
         },
         {
-          "name": "Get Stage Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/stages/:stage_id/analytics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "stages",
-                ":stage_id",
-                "analytics"
-              ],
-              "variable": [
-                {
-                  "key": "stage_id",
-                  "value": "",
-                  "description": "Path parameter: stage_id"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Difficult Stages",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/analytics/difficult-stages",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "analytics",
-                "difficult-stages"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5",
-                  "description": ""
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Record Attempt",
           "request": {
             "auth": {
@@ -1371,6 +1766,310 @@
                 "analytics",
                 "export",
                 "pdf"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stage Analytics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/stages/:stage_id/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "stages",
+                ":stage_id",
+                "analytics"
+              ],
+              "variable": [
+                {
+                  "key": "stage_id",
+                  "value": "",
+                  "description": "Path parameter: stage_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Difficult Stages",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/difficult-stages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "difficult-stages"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transfer",
+      "item": [
+        {
+          "name": "Search Colleagues",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/search-colleagues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "search-colleagues"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "request"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiver_email\": \"usuario@ejemplo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Transfer Requests",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests/:request_id/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests",
+                ":request_id",
+                "accept"
+              ],
+              "variable": [
+                {
+                  "key": "request_id",
+                  "value": "",
+                  "description": "Path parameter: request_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Transfer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/requests/:request_id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "requests",
+                ":request_id",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "request_id",
+                  "value": "",
+                  "description": "Path parameter: request_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transfer",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": ""
+                }
               ]
             }
           },
