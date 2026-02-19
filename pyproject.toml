@@ -20,9 +20,11 @@ dependencies = [
     "reportlab",
     "openpyxl",
     "Pillow>=10.0.0",
+    "psycopg2-binary",
+    "supabase",
 ]
 
 [tool.poe.tasks]
-dev = "uvicorn app.main:app --reload"
+dev = "uvicorn app.main:app --reload --host 0.0.0.0"
 export-postman = "python export_openapi.py"
 init-db = "python init_db.py"

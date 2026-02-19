@@ -1,8 +1,12 @@
 import os
 import shutil
 import time
+import tempfile
 from pathlib import Path
 from fastapi import UploadFile, HTTPException, status
+from app.core.config import settings
+from app.core.supabase_client import supabase
+
 try:
     from PIL import Image
     PILLOW_INSTALLED = True
@@ -11,15 +15,18 @@ except ImportError:
 
 # Define upload directory
 BASE_UPLOAD_DIR = Path("uploads")
-BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# Only create local directory if NOT using Supabase
+if not supabase:
+    BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-wav"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/x-matroska", "video/webm"}
 MAX_FILE_SIZE_MB = 100
+BUCKET_NAME = "uploads"
 
 def validate_file(file: UploadFile, media_type: str):
-    """Validate file type and size"""
+    """Validate file type and size. Note: Size check is better done after reading/saving."""
     if media_type == "image":
         if file.content_type not in ALLOWED_IMAGE_TYPES:
             raise HTTPException(
@@ -67,39 +74,70 @@ def compress_image(source_path: Path, target_path: Path, quality: int = 85):
 
 def save_upload_file(file: UploadFile, entity_id: int, sub_dir: str = "feedback") -> str:
     """
-    Save an uploaded file to the disk.
-    Returns the relative path to the file.
+    Save an uploaded file.
+    If Supabase is configured, uploads to Supabase Storage bucket 'uploads'.
+    Otherwise, saves to local disk.
+    
+    Returns the public URL (Supabase) or relative path (local).
     """
-    upload_path = BASE_UPLOAD_DIR / sub_dir / str(entity_id)
-    upload_path.mkdir(parents=True, exist_ok=True)
     
     # Create a unique filename
-    filename = f"{int(time.time())}_{file.filename}"
-    file_path = upload_path / filename
+    filename = f"{sub_dir}/{entity_id}/{int(time.time())}_{file.filename}"
     
+    # Use temporary file to handle saving/compression before final upload/move
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = Path(tmp.name)
+        
     try:
-        # Save original file first
-        with file_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        # Check file size after saving
-        file_size = file_path.stat().st_size
+        # Check file size
+        file_size = tmp_path.stat().st_size
         if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
-            file_path.unlink()
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"File exceeds maximum size of {MAX_FILE_SIZE_MB}MB"
             )
-        
-        # Automatic compression for images
+
+        # Compress image if possible
         if file.content_type in ALLOWED_IMAGE_TYPES and PILLOW_INSTALLED:
-            temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
-            file_path.rename(temp_path)
-            if compress_image(temp_path, file_path):
-                temp_path.unlink()
-            else:
-                temp_path.rename(file_path) # Restore if failed
+             compressed_path = tmp_path.with_suffix(tmp_path.suffix + ".optimized")
+             if compress_image(tmp_path, compressed_path):
+                 tmp_path.unlink() # Remove original temp
+                 tmp_path = compressed_path
+    
+        # --- Supabase Upload Strategy ---
+        if supabase:
+            try:
+                with open(tmp_path, "rb") as f:
+                    file_bytes = f.read()
+                    
+                # Upload to Supabase Storage
+                # Note: 'upsert=True' avoids errors if file exists, though timestamp makes it unique
+                response = supabase.storage.from_(BUCKET_NAME).upload(
+                    path=filename,
+                    file=file_bytes,
+                    file_options={"content-type": file.content_type, "upsert": "true"}
+                )
+                
+                # Get Public URL
+                public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(filename)
+                return public_url
+
+            except Exception as e:
+                # If bucket doesn't exist, try to create it? (Admin API required usually)
+                # Or just fail gracefully
+                print(f"Supabase upload error: {e}")
+                raise HTTPException(status_code=500, detail="Failed to upload file to storage")
+
+        # --- Local Storage Strategy (Fallback) ---
+        else:
+            upload_path = BASE_UPLOAD_DIR / sub_dir / str(entity_id)
+            upload_path.mkdir(parents=True, exist_ok=True)
+            final_path = upload_path / Path(filename).name
             
+            shutil.move(str(tmp_path), str(final_path))
+            return str(final_path).replace("\\", "/")
+
     except HTTPException:
         raise
     except Exception as e:
@@ -107,18 +145,36 @@ def save_upload_file(file: UploadFile, entity_id: int, sub_dir: str = "feedback"
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Could not save file: {str(e)}"
         )
-        
-    # Return path relative to app root for URL generation
-    return str(file_path).replace("\\", "/")
+    finally:
+        # Clean up temp file if it still exists
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except:
+                pass
 
 def delete_file(file_path: str):
-    """Delete a file from disk"""
+    """Delete a file from storage (Supabase or Local)"""
     if not file_path:
         return
         
-    path = Path(file_path)
-    if path.exists():
+    # Check if it's a Supabase URL
+    if supabase and "supabase.co" in file_path:
         try:
-            path.unlink()
-        except Exception:
-            pass  # Log error in production
+            # Extract path from URL
+            # URL format: .../storage/v1/object/public/{bucket}/{path/to/file}
+            if f"/public/{BUCKET_NAME}/" in file_path:
+                file_key = file_path.split(f"/public/{BUCKET_NAME}/")[1]
+                supabase.storage.from_(BUCKET_NAME).remove([file_key])
+        except Exception as e:
+            print(f"Error deleting file from Supabase: {e}")
+            pass
+            
+    # Local file deletion
+    else:
+        path = Path(file_path)
+        if path.exists():
+            try:
+                path.unlink()
+            except Exception:
+                pass

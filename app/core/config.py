@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     MICROSOFT_CLIENT_ID: str = ""
     MICROSOFT_CLIENT_SECRET: str = ""
     
+    # Supabase Settings (for Storage/Auth)
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+    
     # Frontend URL for redirecting after OAuth
     FRONTEND_URL: str = "http://localhost:3000"
 
