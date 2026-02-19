@@ -48,6 +48,7 @@ def _sqlite_migrations():
     cursor = conn.cursor()
 
     migrations = [
+        # Users Table
         {
             "table": "users",
             "column": "role",
@@ -59,20 +60,102 @@ def _sqlite_migrations():
             "column": "is_professor",
             "sql": "ALTER TABLE users ADD COLUMN is_professor BOOLEAN DEFAULT 0",
         },
+        {
+            "table": "users",
+            "column": "oauth_provider",
+            "sql": "ALTER TABLE users ADD COLUMN oauth_provider TEXT",
+        },
+        {
+            "table": "users",
+            "column": "oauth_id",
+            "sql": "ALTER TABLE users ADD COLUMN oauth_id TEXT",
+        },
+        {
+            "table": "users",
+            "column": "is_blocked",
+            "sql": "ALTER TABLE users ADD COLUMN is_blocked BOOLEAN DEFAULT 0",
+        },
+        {
+            "table": "users",
+            "column": "block_reason",
+            "sql": "ALTER TABLE users ADD COLUMN block_reason TEXT",
+        },
+        # Categories Table
+        {
+            "table": "categories",
+            "column": "created_at",
+            "sql": "ALTER TABLE categories ADD COLUMN created_at DATETIME",
+            "post": "UPDATE categories SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL",
+        },
+        # Stages Table
+        {
+            "table": "stages",
+            "column": "professor_id",
+            "sql": "ALTER TABLE stages ADD COLUMN professor_id INTEGER",
+        },
+        {
+            "table": "stages",
+            "column": "media_url",
+            "sql": "ALTER TABLE stages ADD COLUMN media_url TEXT",
+        },
+        {
+            "table": "stages",
+            "column": "media_type",
+            "sql": "ALTER TABLE stages ADD COLUMN media_type TEXT",
+        },
+        {
+            "table": "stages",
+            "column": "media_filename",
+            "sql": "ALTER TABLE stages ADD COLUMN media_filename TEXT",
+        },
+        {
+            "table": "stages",
+            "column": "interactive_config",
+            "sql": "ALTER TABLE stages ADD COLUMN interactive_config JSON",
+        },
+        {
+            "table": "stages",
+            "column": "approval_status",
+            "sql": "ALTER TABLE stages ADD COLUMN approval_status TEXT DEFAULT 'pending'",
+        },
+        {
+            "table": "stages",
+            "column": "approval_comment",
+            "sql": "ALTER TABLE stages ADD COLUMN approval_comment TEXT",
+        },
+        {
+            "table": "stages",
+            "column": "submitted_at",
+            "sql": "ALTER TABLE stages ADD COLUMN submitted_at DATETIME",
+        },
+        {
+            "table": "stages",
+            "column": "is_active",
+            "sql": "ALTER TABLE stages ADD COLUMN is_active BOOLEAN DEFAULT 1",
+        },
+        {
+            "table": "stages",
+            "column": "is_archived",
+            "sql": "ALTER TABLE stages ADD COLUMN is_archived BOOLEAN DEFAULT 0",
+        },
     ]
 
     for m in migrations:
         try:
             cursor.execute(f"PRAGMA table_info({m['table']})")
             columns = [col[1] for col in cursor.fetchall()]
+            if not columns:
+                # Table might not exist yet if create_all failed or wasn't run
+                continue
+                
             if m["column"] not in columns:
                 cursor.execute(m["sql"])
                 if m.get("post"):
                     cursor.execute(m["post"])
                 conn.commit()
                 print(f"  ✅ Columna '{m['column']}' añadida a '{m['table']}'.")
-            else:
-                print(f"  ✅ Columna '{m['column']}' ya existe en '{m['table']}'.")
+            # else:
+            #     print(f"  ✅ Columna '{m['column']}' ya existe en '{m['table']}'.")
         except Exception as e:
             print(f"  ⚠️ Error en migración para '{m['table']}.{m['column']}': {e}")
 
