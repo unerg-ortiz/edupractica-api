@@ -74,22 +74,50 @@ async def add_stage_to_topic(
     current_user: User = Depends(deps.get_current_active_professor)
 ):
     """Add a learning stage to a topic."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"[ADD_STAGE] Request received - Topic ID: {topic_id}, User: {current_user.id}")
+    logger.debug(f"[ADD_STAGE] Stage data: {stage.model_dump()}")
+    
     db_topic = crud_topic.get_topic(db, topic_id)
     if not db_topic:
+        logger.warning(f"[ADD_STAGE] Topic {topic_id} not found")
         raise HTTPException(status_code=404, detail="Topic not found")
     
+    logger.info(f"[ADD_STAGE] Topic found - Professor ID: {db_topic.professor_id}, Category: {db_topic.category_id}")
+    
     if db_topic.professor_id != current_user.id and not current_user.is_superuser:
+        logger.warning(f"[ADD_STAGE] Unauthorized - User {current_user.id} tried to add stage to topic owned by {db_topic.professor_id}")
         raise HTTPException(status_code=403, detail="Not authorized")
     
     # Create stage with topic_id
     from app.models.stage import Stage
-    stage_data = stage.model_dump()
-    stage_data['topic_id'] = topic_id
-    db_stage = Stage(**stage_data)
-    db.add(db_stage)
-    db.commit()
-    db.refresh(db_stage)
-    return db_stage
+    try:
+        stage_data = stage.model_dump()
+        logger.debug(f"[ADD_STAGE] Original stage data keys: {stage_data.keys()}")
+        
+        stage_data['topic_id'] = topic_id
+        stage_data['professor_id'] = current_user.id
+        stage_data['category_id'] = db_topic.category_id  # Inherit from topic
+        
+        logger.debug(f"[ADD_STAGE] Final stage data: {stage_data}")
+        
+        db_stage = Stage(**stage_data)
+        db.add(db_stage)
+        db.commit()
+        db.refresh(db_stage)
+        
+        logger.info(f"[ADD_STAGE] Stage {db_stage.id} created successfully for topic {topic_id}")
+        return db_stage
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[ADD_STAGE] Error creating stage for topic {topic_id}: {type(e).__name__}: {str(e)}")
+        logger.exception("Full traceback:")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating stage: {type(e).__name__}: {str(e)}"
+        )
 
 # =================== Student Endpoints ===================
 

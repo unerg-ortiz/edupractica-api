@@ -14,8 +14,46 @@ EduPractica API es una aplicación basada en FastAPI que utiliza SQLite para el 
 
 ## Comandos de Configuración
 - Instalar dependencias: `pip install -r requirements.txt`
-- Iniciar servidor de desarrollo: `uvicorn app.main:app --reload`
+- Iniciar servidor de desarrollo: `uvicorn app.main:app --reload` o `poe dev`
 - Verificar estado (health): `curl http://127.0.0.1:8000/health`
+- **Inicializar/Migrar base de datos**: `poe init-db`
+
+## Migraciones de Base de Datos
+> [!IMPORTANT]
+> Este proyecto NO utiliza scripts temporales de migración. Las migraciones permanentes se manejan en `init_db.py`.
+
+**Proceso correcto para agregar/modificar columnas:**
+
+1. **Actualizar el modelo** en `app/models/`:
+   ```python
+   # Ejemplo: app/models/stage.py
+   new_column = Column(String, nullable=True)
+   ```
+
+2. **Actualizar el schema** en `app/schemas/`:
+   ```python
+   # Ejemplo: app/schemas/stage.py
+   new_column: Optional[str] = None
+   ```
+
+3. **Agregar migración** en `init_db.py` dentro del array `migrations`:
+   ```python
+   {
+       "table": "stages",
+       "column": "new_column",
+       "sql": "ALTER TABLE stages ADD COLUMN new_column TEXT",
+   },
+   ```
+
+4. **Ejecutar migración**: `poe init-db`
+
+**❌ NO CREAR:**
+- Scripts como `add_column_x.py`, `fix_migration.py`, etc.
+- Estos son parches temporales y no son mantenibles
+
+**✅ USAR:**
+- `init_db.py` para todas las migraciones
+- Considerar Alembic para proyectos más grandes en el futuro
 
 ## Estructura de Directorios
 - `app/`: Lógica principal de la aplicación

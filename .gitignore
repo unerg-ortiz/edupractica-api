@@ -27,3 +27,16 @@ ENV/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Uploads (user-generated content)
+uploads/
+
+# Temporary/Debug scripts (should be in .vibe/ if needed)
+*_temp.py
+*_debug.py
+*_test_*.py
+fix_*.py
+migrate_*.py
+sync_*.py
+update_*.py
+populate_*.py

@@ -22,6 +22,7 @@ if not supabase:
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-wav"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/x-matroska", "video/webm"}
+ALLOWED_DOC_TYPES = {"application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"}
 MAX_FILE_SIZE_MB = 100
 BUCKET_NAME = "uploads"
 
@@ -44,6 +45,12 @@ def validate_file(file: UploadFile, media_type: str):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid video type. Allowed: {', '.join(ALLOWED_VIDEO_TYPES)}"
+            )
+    elif media_type == "document":
+        if file.content_type not in ALLOWED_DOC_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid document type. Allowed: {', '.join(ALLOWED_DOC_TYPES)}"
             )
     else:
         raise HTTPException(

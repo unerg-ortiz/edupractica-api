@@ -11,14 +11,18 @@ class Stage(Base):
     __tablename__ = "stages"
 
     id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)  # Inherited from topic, kept for backward compatibility
     topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
+    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Who created this stage
     order = Column(Integer, nullable=False, index=True)  # Sequential order (1, 2, 3...)
     title = Column(String(100), nullable=False)
     description = Column(String, nullable=True) # Short intro to this stage
     content = Column(String, nullable=True)  # Theoretical/educational content
+    challenge_description = Column(String, nullable=True)  # Description of the challenge/exercise
     media_url = Column(String, nullable=True)  # Path to uploaded video/audio/image
     media_type = Column(String(20), nullable=True)  # 'video', 'audio', or 'image'
     media_filename = Column(String(255), nullable=True) # Original filename
+    media_files = Column(JSON, nullable=True) # List of {url, type, filename}
     interactive_config = Column(JSON, nullable=True) # Configuration for the quiz/challenge
     
     is_active = Column(Boolean, default=True)

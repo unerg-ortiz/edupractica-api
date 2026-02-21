@@ -115,8 +115,18 @@ def _sqlite_migrations():
         },
         {
             "table": "stages",
+            "column": "media_files",
+            "sql": "ALTER TABLE stages ADD COLUMN media_files JSON",
+        },
+        {
+            "table": "stages",
             "column": "interactive_config",
             "sql": "ALTER TABLE stages ADD COLUMN interactive_config JSON",
+        },
+        {
+            "table": "stages",
+            "column": "challenge_description",
+            "sql": "ALTER TABLE stages ADD COLUMN challenge_description TEXT",
         },
         {
             "table": "stages",

@@ -6,7 +6,9 @@ from app.schemas.interactive import InteractiveConfig
 
 class StageBase(BaseModel):
     """Base schema for Stage"""
-    topic_id: int = Field(..., description="ID of the topic this stage belongs to")
+    category_id: Optional[int] = Field(None, description="ID of the category (inherited from topic)")
+    topic_id: Optional[int] = Field(None, description="ID of the topic this stage belongs to")
+    professor_id: Optional[int] = Field(None, description="ID of the professor who created this stage")
     order: int = Field(..., ge=1, description="Sequential order of the stage (1, 2, 3...)")
     title: str = Field(..., max_length=100, description="Title of the stage")
     description: Optional[str] = Field(None, description="Description of the stage")
@@ -15,7 +17,8 @@ class StageBase(BaseModel):
     media_url: Optional[str] = Field(None, description="URL or path to the media file")
     media_type: Optional[str] = Field(None, description="Type of media ('video', 'audio', 'image')")
     media_filename: Optional[str] = Field(None, description="Original filename of the media")
-    interactive_config: Optional[InteractiveConfig] = Field(None, description="Configuration for interactive games")
+    media_files: Optional[List[dict]] = Field(default=[], description="List of multiple media files")
+    interactive_config: Optional[dict] = Field(None, description="Configuration for interactive games")
     is_active: bool = Field(True, description="Whether this stage is active")
 
 class StageCreate(StageBase):
@@ -25,6 +28,8 @@ class StageCreate(StageBase):
 class StageUpdate(BaseModel):
     """Schema for updating an existing stage"""
     topic_id: Optional[int] = None
+    professor_id: Optional[int] = None
+    category_id: Optional[int] = Field(None, description="ID of the category (inherited from topic)")
     order: Optional[int] = Field(None, ge=1)
     title: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
@@ -33,7 +38,8 @@ class StageUpdate(BaseModel):
     media_url: Optional[str] = None
     media_type: Optional[str] = None
     media_filename: Optional[str] = None
-    interactive_config: Optional[InteractiveConfig] = None
+    media_files: Optional[List[dict]] = None
+    interactive_config: Optional[dict] = None
     is_active: Optional[bool] = None
 
 class Stage(StageBase):
@@ -75,6 +81,7 @@ class StageWithProgress(BaseModel):
     """
     id: int
     topic_id: int
+    professor_id: Optional[int] = None
     order: int
     title: str
     description: Optional[str]
@@ -83,7 +90,8 @@ class StageWithProgress(BaseModel):
     media_url: Optional[str]
     media_type: Optional[str]
     media_filename: Optional[str]
-    interactive_config: Optional[InteractiveConfig]
+    media_files: Optional[List[dict]] = []
+    interactive_config: Optional[dict] = None
     is_active: bool
     is_unlocked: bool = Field(..., description="Whether this stage is unlocked for the user")
     is_completed: bool = Field(..., description="Whether the user has completed this stage")
