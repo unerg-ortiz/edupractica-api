@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 
 from app.models.topic import Topic
@@ -8,7 +8,12 @@ from app.schemas.topic import TopicCreate, TopicUpdate
 
 
 def get_topic(db: Session, topic_id: int) -> Optional[Topic]:
-    return db.query(Topic).filter(Topic.id == topic_id, Topic.is_active == True).first()
+    return (
+        db.query(Topic)
+        .options(joinedload(Topic.professor))
+        .filter(Topic.id == topic_id, Topic.is_active == True)
+        .first()
+    )
 
 
 def get_topics_by_professor(
@@ -50,6 +55,7 @@ def get_pending_topics(db: Session, skip: int = 0, limit: int = 100) -> List[Top
     """Get all topics pending approval (Admin only)"""
     return (
         db.query(Topic)
+        .options(joinedload(Topic.professor))
         .filter(Topic.approval_status == "pending", Topic.is_active == True)
         .order_by(Topic.submitted_at.desc())
         .offset(skip)

@@ -52,22 +52,20 @@ async def get_topic(
     
     # Access Control:
     # 1. Admins see everything
-    if current_user.is_superuser:
-        return db_topic
-        
     # 2. Owners see their own topics
-    if db_topic.professor_id == current_user.id:
-        return db_topic
-        
     # 3. Students see approved topics
-    if current_user.role == "student" and db_topic.approval_status == "approved":
-        return db_topic
+    if not (current_user.is_superuser or 
+            db_topic.professor_id == current_user.id or 
+            (current_user.role == "student" and db_topic.approval_status == "approved")):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="No tienes permiso para acceder a este tema."
+        )
     
-    # Any other case (e.g. professor seeing someone else's topic, or student seeing unapproved)
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, 
-        detail="No tienes permiso para acceder a este tema."
-    )
+    # Add professor name to response
+    topic_dict = topic_schemas.TopicWithStages.model_validate(db_topic).model_dump()
+    topic_dict['professor_name'] = db_topic.professor.full_name if db_topic.professor else None
+    return topic_schemas.TopicWithStages(**topic_dict)
 
 @router.put("/topics/{topic_id}", response_model=topic_schemas.Topic)
 async def update_topic(
@@ -333,7 +331,16 @@ async def get_pending_topics(
     """
     List all topics pending approval (Admin only).
     """
-    return crud_topic.get_pending_topics(db, skip=skip, limit=limit)
+    topics = crud_topic.get_pending_topics(db, skip=skip, limit=limit)
+    
+    # Add professor names to the response
+    result = []
+    for topic in topics:
+        topic_dict = topic_schemas.TopicWithStages.model_validate(topic).model_dump()
+        topic_dict['professor_name'] = topic.professor.full_name if topic.professor else None
+        result.append(topic_schemas.TopicWithStages(**topic_dict))
+    
+    return result
 
 @router.post("/topics/{topic_id}/review", response_model=topic_schemas.Topic)
 async def review_topic(

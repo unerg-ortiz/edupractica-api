@@ -22,6 +22,7 @@ class TopicUpdate(BaseModel):
 class Topic(TopicBase):
     id: int
     professor_id: int
+    professor_name: Optional[str] = None
     approval_status: str
     approval_comment: Optional[str]
     submitted_at: datetime
