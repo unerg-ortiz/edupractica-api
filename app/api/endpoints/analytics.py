@@ -45,12 +45,21 @@ def get_professor_summary(
 @router.get("/export/excel")
 def export_progress_excel(
     db: Session = Depends(get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_user)
 ):
     """
     Export raw progress data to Excel (.xlsx).
+    Admins get all data, professors get only their content data.
     """
-    data = AnalyticsService.get_progress_data_for_export(db)
+    if current_user.is_superuser:
+        # Admin: all data
+        data = AnalyticsService.get_progress_data_for_export(db)
+    elif current_user.is_professor:
+        # Professor: only their topics' data
+        data = AnalyticsService.get_progress_data_for_export(db, professor_id=current_user.id)
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized to export data")
+    
     df = pd.DataFrame(data)
     
     # Save to buffer
@@ -73,14 +82,20 @@ def export_progress_excel(
 @router.get("/export/pdf")
 def export_progress_pdf(
     db: Session = Depends(get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_user)
 ):
     """
     Export progress report to PDF.
     Includes charts and summary metrics.
+    Admins get all data, professors get only their content data.
     """
-    # Get data
-    summary = AnalyticsService.get_dashboard_summary(db)
+    # Get data based on user role
+    if current_user.is_superuser:
+        summary = AnalyticsService.get_dashboard_summary(db)
+    elif current_user.is_professor:
+        summary = AnalyticsService.get_professor_summary(db, current_user.id)
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized to export data")
     
     # Create PDF
     buffer = io.BytesIO()
@@ -99,22 +114,51 @@ def export_progress_pdf(
     p.drawString(50, y, "Summary Metrics")
     y -= 20
     p.setFont("Helvetica", 10)
-    p.drawString(70, y, f"Total Students: {summary['total_students']}")
-    y -= 15
-    p.drawString(70, y, f"Completion Rate: {summary['completion_rate']}%")
-    y -= 15
-    p.drawString(70, y, f"Avg Time per Stage: {summary['avg_time_per_stage_seconds']} sec")
     
-    # Difficult Stages (Breakpoints)
-    y -= 40
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "Top 3 Difficult Stages (Breakpoints)")
-    y -= 20
-    p.setFont("Helvetica", 10)
-    
-    for stage in summary.get('difficult_stages', []):
-        p.drawString(70, y, f"- {stage['stage_title']}: {stage['failure_rate']}% failure rate ({stage['total_attempts']} attempts)")
+    if current_user.is_superuser:
+        p.drawString(70, y, f"Total Students: {summary.get('total_students', 0)}")
         y -= 15
+        p.drawString(70, y, f"Completion Rate: {summary.get('completion_rate', 0)}%")
+        y -= 15
+        p.drawString(70, y, f"Avg Time per Stage: {summary.get('avg_time_per_stage_seconds', 0)} sec")
+    else:
+        # Professor metrics
+        p.drawString(70, y, f"Total Topics: {summary.get('total', 0)} (Approved: {summary.get('approved', 0)})")
+        y -= 15
+        p.drawString(70, y, f"Total Students: {summary.get('total_students', 0)}")
+        y -= 15
+        p.drawString(70, y, f"Retention Rate: {summary.get('retention_rate', 0)}%")
+        y -= 15
+        p.drawString(70, y, f"Failure Rate: {summary.get('failure_rate', 0)}%")
+        y -= 15
+        p.drawString(70, y, f"Avg Time per Stage: {summary.get('avg_time_per_stage_minutes', 0)} min")
+    
+    # Students at Risk (for professors)
+    if current_user.is_professor and summary.get('students_at_risk'):
+        y -= 40
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Students at Risk")
+        y -= 20
+        p.setFont("Helvetica", 10)
+        
+        for student in summary['students_at_risk'][:5]:
+            risk_label = student.get('risk_level', 'unknown').upper()
+            p.drawString(70, y, f"- {student['full_name']}: {risk_label} (Failure rate: {student['failure_rate']}%)")
+            y -= 15
+            if y < 100:  # Prevent overflow
+                break
+    
+    # Difficult Stages (for admins)
+    if current_user.is_superuser and summary.get('difficult_stages'):
+        y -= 40
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Top 3 Difficult Stages (Breakpoints)")
+        y -= 20
+        p.setFont("Helvetica", 10)
+        
+        for stage in summary.get('difficult_stages', [])[:3]:
+            p.drawString(70, y, f"- {stage['stage_title']}: {stage['failure_rate']}% failure rate ({stage['total_attempts']} attempts)")
+            y -= 15
         
     p.showPage()
     p.save()

@@ -114,8 +114,15 @@ class AnalyticsService:
         - Total themes (topics)
         - Count by status (approved, pending, rejected)
         - Total distinct students interacting with professor's content
+        - Retention rate (% of students who complete stages)
+        - Average time per lesson
+        - Failure rate
+        - Stage-by-stage metrics for graph
+        - Students at risk (low performance)
         """
         from app.models.topic import Topic
+        from app.models.user import User
+        
         # 1. Counts by status
         counts = db.query(
             Topic.approval_status,
@@ -145,6 +152,127 @@ class AnalyticsService:
                 summary["pending"] = count
             elif status == "rejected":
                 summary["rejected"] = count
+        
+        # 3. Retention rate: % of students who complete vs start stages
+        professor_stages = db.query(Stage.id).join(Topic).filter(
+            Topic.professor_id == professor_id,
+            Topic.approval_status == "approved"
+        ).subquery()
+        
+        total_progress = db.query(UserStageProgress).filter(
+            UserStageProgress.stage_id.in_(professor_stages)
+        ).count()
+        
+        completed_progress = db.query(UserStageProgress).filter(
+            UserStageProgress.stage_id.in_(professor_stages),
+            UserStageProgress.is_completed == True
+        ).count()
+        
+        retention_rate = 0.0
+        if total_progress > 0:
+            retention_rate = (completed_progress / total_progress) * 100
+        
+        # 4. Average time per successful attempt
+        avg_time = db.query(func.avg(StudentAttempt.time_spent_seconds)).join(Stage).join(Topic).filter(
+            Topic.professor_id == professor_id,
+            StudentAttempt.is_successful == True
+        ).scalar() or 0
+        
+        # 5. Failure rate across all attempts
+        total_attempts = db.query(func.count(StudentAttempt.id)).join(Stage).join(Topic).filter(
+            Topic.professor_id == professor_id
+        ).scalar() or 0
+        
+        failed_attempts = db.query(func.count(StudentAttempt.id)).join(Stage).join(Topic).filter(
+            Topic.professor_id == professor_id,
+            StudentAttempt.is_successful == False
+        ).scalar() or 0
+        
+        failure_rate = 0.0
+        if total_attempts > 0:
+            failure_rate = (failed_attempts / total_attempts) * 100
+        
+        # 6. Stage-by-stage breakdown for graph
+        stage_metrics = db.query(
+            Stage.id,
+            Stage.title,
+            Stage.order,
+            func.count(UserStageProgress.id).label('total_students'),
+            func.sum(case((UserStageProgress.is_completed == True, 1), else_=0)).label('completed')
+        ).join(Topic).outerjoin(UserStageProgress, UserStageProgress.stage_id == Stage.id).filter(
+            Topic.professor_id == professor_id,
+            Topic.approval_status == "approved"
+        ).group_by(Stage.id, Stage.title, Stage.order).order_by(Stage.order).all()
+        
+        stages_data = []
+        for stage in stage_metrics:
+            completion_rate = 0.0
+            if stage.total_students > 0:
+                completion_rate = (stage.completed / stage.total_students) * 100
+            
+            stages_data.append({
+                "stage_id": stage.id,
+                "stage_title": stage.title,
+                "order": stage.order,
+                "total_students": stage.total_students,
+                "completed": stage.completed,
+                "completion_rate": round(completion_rate, 1)
+            })
+        
+        # 7. Students at risk (low completion rate or recent failures)
+        at_risk_students = db.query(
+            User.id,
+            User.full_name,
+            User.email,
+            func.count(StudentAttempt.id).label('total_attempts'),
+            func.sum(case((StudentAttempt.is_successful == False, 1), else_=0)).label('failures'),
+            func.max(StudentAttempt.created_at).label('last_attempt')
+        ).join(StudentAttempt, StudentAttempt.user_id == User.id)\
+         .join(Stage, StudentAttempt.stage_id == Stage.id)\
+         .join(Topic, Stage.topic_id == Topic.id)\
+         .filter(Topic.professor_id == professor_id, User.role == "student")\
+         .group_by(User.id, User.full_name, User.email)\
+         .all()
+        
+        students_alert = []
+        for student in at_risk_students:
+            failure_rate_student = 0.0
+            if student.total_attempts > 0:
+                failure_rate_student = (student.failures / student.total_attempts) * 100
+            
+            # Consider "at risk" if failure rate > 40% or no activity in 7+ days
+            risk_level = None
+            if failure_rate_student > 60:
+                risk_level = "high"
+            elif failure_rate_student > 40:
+                risk_level = "medium"
+            elif student.last_attempt:
+                days_inactive = (datetime.datetime.now() - student.last_attempt).days
+                if days_inactive > 7:
+                    risk_level = "inactive"
+            
+            if risk_level:
+                students_alert.append({
+                    "user_id": student.id,
+                    "full_name": student.full_name,
+                    "email": student.email,
+                    "failure_rate": round(failure_rate_student, 1),
+                    "total_attempts": student.total_attempts,
+                    "last_attempt": student.last_attempt.isoformat() if student.last_attempt else None,
+                    "risk_level": risk_level
+                })
+        
+        # Sort by risk level and limit to top 10
+        students_alert.sort(key=lambda x: (x["risk_level"] == "high", x["failure_rate"]), reverse=True)
+        students_alert = students_alert[:10]
+        
+        summary.update({
+            "retention_rate": round(retention_rate, 1),
+            "avg_time_per_stage_minutes": round(avg_time / 60, 1) if avg_time > 0 else 0,
+            "failure_rate": round(failure_rate, 1),
+            "stages": stages_data,
+            "students_at_risk": students_alert
+        })
                 
         return summary
 

@@ -12,15 +12,23 @@ router = APIRouter()
 
 # =================== Professor Endpoints ===================
 
-@router.get("/topics/me", response_model=List[topic_schemas.Topic])
+@router.get("/topics/me", response_model=List[topic_schemas.TopicWithStages])
 async def get_my_topics(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_professor)
 ):
-    """Get all topics created by the current professor."""
-    return crud_topic.get_topics_by_professor(db, professor_id=current_user.id, skip=skip, limit=limit)
+    """Get all topics created by the current professor with their stages."""
+    topics = crud_topic.get_topics_by_professor(db, professor_id=current_user.id, skip=skip, limit=limit)
+    
+    # Load stages for each topic
+    result = []
+    for topic in topics:
+        topic.stages  # This triggers lazy loading of the relationship
+        result.append(topic)
+    
+    return result
 
 @router.post("/topics", response_model=topic_schemas.Topic)
 async def create_topic(
