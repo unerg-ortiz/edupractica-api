@@ -104,3 +104,13 @@ def update_topic(db: Session, topic_id: int, topic_update: TopicUpdate) -> Optio
     db.commit()
     db.refresh(db_topic)
     return db_topic
+
+
+def delete_topic(db: Session, topic_id: int) -> bool:
+    db_topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not db_topic:
+        return False
+    
+    db_topic.is_active = False
+    db.commit()
+    return True

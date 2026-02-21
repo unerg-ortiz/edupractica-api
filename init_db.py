@@ -130,6 +130,11 @@ def _sqlite_migrations():
         },
         {
             "table": "stages",
+            "column": "category_id",
+            "sql": "ALTER TABLE stages ADD COLUMN category_id INTEGER",
+        },
+        {
+            "table": "stages",
             "column": "approval_status",
             "sql": "ALTER TABLE stages ADD COLUMN approval_status TEXT DEFAULT 'pending'",
         },

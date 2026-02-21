@@ -7,43 +7,62 @@ class InteractiveType(str, Enum):
     CLASSIFICATION = "classification"
     ORDERING = "ordering"
     MULTIPLE_CHOICE = "multiple_choice"
+    QUIZ = "quiz"
 
-class ElementType(str, Enum):
-    TEXT = "text"
-    IMAGE = "image"
-    AUDIO = "audio"
-
-class ChallengeElement(BaseModel):
+class QuizOption(BaseModel):
     id: str
-    type: ElementType
-    content: str  # Text string or URL for image/audio
-    media_url: Optional[str] = None
-    label: Optional[str] = None
+    text: str
+    isCorrect: bool
+
+class QuizQuestion(BaseModel):
+    id: str
+    question: str
+    options: List[QuizOption]
+
+class QuizConfig(BaseModel):
+    questions: List[QuizQuestion]
+
+class ClassificationBucket(BaseModel):
+    id: str
+    name: str
+
+class ClassificationItem(BaseModel):
+    id: str
+    content: str
+    bucketId: str
+
+class ClassificationConfig(BaseModel):
+    buckets: List[ClassificationBucket]
+    items: List[ClassificationItem]
 
 class MatchingPair(BaseModel):
-    left_id: str
-    right_id: str
-
-class ClassificationCategory(BaseModel):
     id: str
-    title: str
-    correct_element_ids: List[str]
+    left: str
+    right: str
+
+class MatchingConfig(BaseModel):
+    pairs: List[MatchingPair]
+
+class OrderingItem(BaseModel):
+    id: str
+    text: str
+
+class OrderingConfig(BaseModel):
+    items: List[OrderingItem]
 
 class InteractiveConfig(BaseModel):
-    challenge_type: InteractiveType = Field(..., description="Type of interactive game")
-    instructions: str = Field(..., description="Professor instructions for the student")
+    challengeType: InteractiveType
+    # Fields to accommodate different game structures
+    quiz: Optional[QuizConfig] = None
+    classification: Optional[ClassificationConfig] = None
+    matching: Optional[MatchingConfig] = None
+    ordering: Optional[OrderingConfig] = None
     
-    # Common elements used in the challenge
-    elements: List[ChallengeElement] = Field(..., description="Library of available items (cards, images, etc.)")
-    
-    # Config specific to challenge type
-    matching_pairs: Optional[List[MatchingPair]] = None
-    classification_categories: Optional[List[ClassificationCategory]] = None
-    correct_order: Optional[List[str]] = None  # List of element IDs in order
-    
-    # UI/UX Settings
-    show_confetti: bool = Field(True, description="Whether to show animations on success")
+    # Legacy/Flexible fields
+    instructions: Optional[str] = None
+    show_confetti: bool = True
     time_limit_seconds: Optional[int] = None
     
     class Config:
         from_attributes = True
+        extra = "allow" # Allow extra fields for flexibility

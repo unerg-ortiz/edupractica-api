@@ -48,6 +48,13 @@ def accept_transfer_request(db: Session, request_id: int, user_id: int) -> bool:
         return False
     
     # Perform transfer
+    # 1. Update topics
+    from app.models.topic import Topic
+    db.query(Topic).filter(Topic.professor_id == request.sender_id).update(
+        {Topic.professor_id: request.receiver_id}
+    )
+    
+    # 2. Update stages
     db.query(Stage).filter(Stage.professor_id == request.sender_id).update(
         {Stage.professor_id: request.receiver_id}
     )

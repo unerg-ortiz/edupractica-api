@@ -42,12 +42,24 @@ async def get_topic(
     if not db_topic:
         raise HTTPException(status_code=404, detail="Topic not found")
     
-    # Students can only see approved topics
-    if not current_user.is_superuser and db_topic.professor_id != current_user.id:
-        if db_topic.approval_status != "approved":
-            raise HTTPException(status_code=404, detail="Topic not found")
+    # Access Control:
+    # 1. Admins see everything
+    if current_user.is_superuser:
+        return db_topic
+        
+    # 2. Owners see their own topics
+    if db_topic.professor_id == current_user.id:
+        return db_topic
+        
+    # 3. Students see approved topics
+    if current_user.role == "student" and db_topic.approval_status == "approved":
+        return db_topic
     
-    return db_topic
+    # Any other case (e.g. professor seeing someone else's topic, or student seeing unapproved)
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, 
+        detail="No tienes permiso para acceder a este tema."
+    )
 
 @router.put("/topics/{topic_id}", response_model=topic_schemas.Topic)
 async def update_topic(
@@ -65,6 +77,26 @@ async def update_topic(
         raise HTTPException(status_code=403, detail="Not authorized")
     
     return crud_topic.update_topic(db, topic_id, topic_update)
+    
+@router.delete("/topics/{topic_id}")
+async def delete_topic(
+    topic_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_professor)
+):
+    """Delete a topic (soft delete)."""
+    db_topic = crud_topic.get_topic(db, topic_id)
+    if not db_topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+    
+    if db_topic.professor_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    success = crud_topic.delete_topic(db, topic_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Topic not found")
+        
+    return {"message": "Topic deleted successfully"}
 
 @router.post("/topics/{topic_id}/stages", response_model=stage_schemas.Stage)
 async def add_stage_to_topic(
