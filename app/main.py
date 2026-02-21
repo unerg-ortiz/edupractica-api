@@ -7,7 +7,7 @@ from app.db.base import Base
 from app.db.session import engine
 import os
 
-from app.api.endpoints import login, users, categories, stages, feedback, oauth, analytics, transfer
+from app.api.endpoints import login, users, categories, stages, feedback, oauth, analytics, transfer, topics
 
 # ── App factory ──────────────────────────────────────────────────────────────
 app = FastAPI(title=settings.PROJECT_NAME)
@@ -31,6 +31,7 @@ app.include_router(oauth.router, prefix="/auth", tags=["oauth"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
 app.include_router(stages.router, prefix="/api", tags=["stages"])
+app.include_router(topics.router, prefix="/api", tags=["topics"])
 app.include_router(feedback.router, prefix="/api", tags=["feedback"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(transfer.router, prefix="/api/transfer", tags=["transfer"])

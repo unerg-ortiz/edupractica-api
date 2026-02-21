@@ -62,6 +62,62 @@ Crea un nuevo usuario. Requiere rol de superusuario.
 }
 ```
 
+## POST /users/signup
+
+**Descripción:**
+Endpoint público para el registro de nuevos usuarios. **No requiere autenticación**.
+
+**Seguridad:**
+- No permite crear usuarios con rol `admin` (protección contra escalada de privilegios)
+- Solo permite roles: `student` y `professor`
+- El flag `is_superuser` siempre se establece en `false`
+
+**Ejemplo de Entrada:**
+```json
+{
+  "email": "nuevo-estudiante@ejemplo.com",
+  "password": "securepassword123",
+  "full_name": "Juan Pérez",
+  "role": "student"
+}
+```
+
+**Ejemplo de Respuesta (Éxito):**
+```json
+{
+  "email": "nuevo-estudiante@ejemplo.com",
+  "is_active": true,
+  "is_superuser": false,
+  "is_professor": false,
+  "full_name": "Juan Pérez",
+  "role": "student",
+  "id": 10,
+  "is_blocked": false,
+  "block_reason": null,
+  "oauth_provider": null,
+  "oauth_id": null
+}
+```
+
+**Errores Posibles:**
+```json
+{
+  "detail": "The user with this email already exists in the system"
+}
+```
+
+```json
+{
+  "detail": "Admin role cannot be assigned through public signup"
+}
+```
+
+```json
+{
+  "detail": "Invalid role. Allowed roles: student, professor"
+}
+```
+
 ## POST /users/{user_id}/block
 
 **Descripción:**

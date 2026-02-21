@@ -11,30 +11,20 @@ class Stage(Base):
     __tablename__ = "stages"
 
     id = Column(Integer, primary_key=True, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Who created/submitted the stage
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
     order = Column(Integer, nullable=False, index=True)  # Sequential order (1, 2, 3...)
     title = Column(String(100), nullable=False)
-    description = Column(String, nullable=True)
-    content = Column(String, nullable=True)  # Educational content
-    challenge_description = Column(String, nullable=True)  # Challenge to complete this stage
+    description = Column(String, nullable=True) # Short intro to this stage
+    content = Column(String, nullable=True)  # Theoretical/educational content
     media_url = Column(String, nullable=True)  # Path to uploaded video/audio/image
     media_type = Column(String(20), nullable=True)  # 'video', 'audio', or 'image'
     media_filename = Column(String(255), nullable=True) # Original filename
-    interactive_config = Column(JSON, nullable=True) # Configuration for drag-and-drop/matching games
-    
-    # Approval Workflow
-    approval_status = Column(String(20), default="pending", nullable=False) # pending, approved, rejected
-    approval_comment = Column(String, nullable=True) # Feedback from admin
-    submitted_at = Column(DateTime(timezone=True), server_default=func.now())
+    interactive_config = Column(JSON, nullable=True) # Configuration for the quiz/challenge
     
     is_active = Column(Boolean, default=True)
-    is_archived = Column(Boolean, default=False)  # For archived topics
-    professor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
-    category = relationship("Category", backref="stages")
-    professor = relationship("User", backref="stages")
+    topic = relationship("Topic", back_populates="stages")
     user_progress = relationship("UserStageProgress", back_populates="stage")
 
 

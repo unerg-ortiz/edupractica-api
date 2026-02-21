@@ -16,7 +16,7 @@ from app.core.config import settings
 from app.models.user import User
 
 # Ensure ALL models are imported for metadata
-from app.models import user, audit, category, stage, feedback, transfer
+from app.models import user, audit, category, topic, stage, feedback, transfer
 
 
 # ──────────────────────────────────────────────
@@ -88,6 +88,11 @@ def _sqlite_migrations():
             "post": "UPDATE categories SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL",
         },
         # Stages Table
+        {
+            "table": "stages",
+            "column": "topic_id",
+            "sql": "ALTER TABLE stages ADD COLUMN topic_id INTEGER",
+        },
         {
             "table": "stages",
             "column": "professor_id",

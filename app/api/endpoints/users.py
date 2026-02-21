@@ -21,6 +21,21 @@ def delete_me(
     crud.user.remove_completely(db, user_id=current_user.id)
     return current_user
 
+@router.get("/students", response_model=List[schemas.User])
+def read_students(
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retrieve students. Accessible by active users (professors).
+    """
+    # For now, all active users can see students. 
+    # Logic could be hardened to only allow professors/admins.
+    students = crud.user.get_students(db, skip=skip, limit=limit)
+    return students
+
 @router.get("/", response_model=List[schemas.User])
 def read_users(
     db: Session = Depends(deps.get_db),
@@ -51,6 +66,22 @@ def signup(
         )
     # Ensure superuser flag cannot be set via public signup
     user_in.is_superuser = False
+    
+    # Prevent admin role creation via public signup
+    if user_in.role == "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin role cannot be assigned through public signup",
+        )
+    
+    # Restrict to allowed roles only
+    allowed_roles = ["student", "professor"]
+    if user_in.role not in allowed_roles:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role. Allowed roles: {', '.join(allowed_roles)}",
+        )
+    
     user = crud.user.create(db, obj_in=user_in)
     return user
 

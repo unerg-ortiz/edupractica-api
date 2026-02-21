@@ -82,6 +82,7 @@ class AnalyticsService:
         Get raw data for Excel export.
         Returns list of dictionaries.
         """
+        from app.models.topic import Topic
         results = db.query(
             Stage.title.label("stage_title"),
             Category.name.label("category_name"),
@@ -90,7 +91,8 @@ class AnalyticsService:
             StudentAttempt.attempt_number,
             StudentAttempt.created_at
         ).join(Stage, StudentAttempt.stage_id == Stage.id)\
-         .join(Category, Stage.category_id == Category.id)\
+         .join(Topic, Stage.topic_id == Topic.id)\
+         .join(Category, Topic.category_id == Category.id)\
          .all()
          
         data = []
@@ -104,4 +106,45 @@ class AnalyticsService:
                 "Date": row.created_at.strftime("%Y-%m-%d %H:%M")
             })
         return data
+
+    @staticmethod
+    def get_professor_summary(db: Session, professor_id: int):
+        """
+        Summary for the Professor Dashboard:
+        - Total themes (topics)
+        - Count by status (approved, pending, rejected)
+        - Total distinct students interacting with professor's content
+        """
+        from app.models.topic import Topic
+        # 1. Counts by status
+        counts = db.query(
+            Topic.approval_status,
+            func.count(Topic.id)
+        ).filter(Topic.professor_id == professor_id, Topic.is_active == True)\
+         .group_by(Topic.approval_status).all()
+
+        # 2. Total students who have attempted any stage of professor's topics
+        total_students = db.query(func.count(func.distinct(StudentAttempt.user_id)))\
+            .join(Stage, StudentAttempt.stage_id == Stage.id)\
+            .join(Topic, Stage.topic_id == Topic.id)\
+            .filter(Topic.professor_id == professor_id).scalar() or 0
+        
+        summary = {
+            "total": 0,
+            "approved": 0,
+            "pending": 0,
+            "rejected": 0,
+            "total_students": total_students
+        }
+        
+        for status, count in counts:
+            summary["total"] += count
+            if status == "approved":
+                summary["approved"] = count
+            elif status == "pending":
+                summary["pending"] = count
+            elif status == "rejected":
+                summary["rejected"] = count
+                
+        return summary
 

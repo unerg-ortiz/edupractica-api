@@ -12,6 +12,19 @@ from app.core import media
 router = APIRouter()
 
 
+@router.get("/stages/me", response_model=List[stage_schemas.Stage])
+async def get_my_stages(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_professor)
+):
+    """
+    Get all stages created by the current professor.
+    """
+    return crud_stage.get_stages_by_professor(db, professor_id=current_user.id, skip=skip, limit=limit)
+
+
 @router.get("/categories/{category_id}/stages", response_model=List[stage_schemas.Stage])
 async def get_category_stages(
     category_id: int,

@@ -43,6 +43,23 @@ def get_pending_stages(db: Session, skip: int = 0, limit: int = 100) -> List[Sta
     )
 
 
+def get_stages_by_professor(
+    db: Session, 
+    professor_id: int, 
+    skip: int = 0, 
+    limit: int = 100
+) -> List[Stage]:
+    """Get all stages created by a specific professor"""
+    return (
+        db.query(Stage)
+        .filter(Stage.professor_id == professor_id, Stage.is_active == True)
+        .order_by(Stage.submitted_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
 def create_stage(db: Session, stage: StageCreate, professor_id: Optional[int] = None) -> Stage:
     """Create a new stage with professor tracking and pending status"""
     db_stage = Stage(**stage.model_dump())

@@ -15,6 +15,9 @@ class CRUDUser:
     def get_multi(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
         return db.query(User).offset(skip).limit(limit).all()
 
+    def get_students(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
+        return db.query(User).filter(User.role == "student").offset(skip).limit(limit).all()
+
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
         db_obj = User(
             email=obj_in.email,

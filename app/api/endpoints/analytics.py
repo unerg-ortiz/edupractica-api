@@ -31,6 +31,17 @@ def get_dashboard_summary(
     return AnalyticsService.get_dashboard_summary(db, group_id)
 
 
+@router.get("/professor/summary", response_model=dict)
+def get_professor_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_professor)
+):
+    """
+    Get high-level metrics for the current professor.
+    """
+    return AnalyticsService.get_professor_summary(db, current_user.id)
+
+
 @router.get("/export/excel")
 def export_progress_excel(
     db: Session = Depends(get_db),
