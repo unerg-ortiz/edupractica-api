@@ -26,6 +26,7 @@ class CRUDUser:
             role=obj_in.role,
             is_superuser=obj_in.is_superuser,
             is_active=obj_in.is_active,
+            is_professor=(obj_in.role == "professor"),
         )
         db.add(db_obj)
         db.commit()
@@ -60,6 +61,7 @@ class CRUDUser:
             oauth_id=oauth_id,
             is_active=True,
             is_superuser=False,
+            is_professor=False,
         )
         db.add(db_obj)
         db.commit()
@@ -100,6 +102,10 @@ class CRUDUser:
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["hashed_password"] = hashed_password
+        
+        # Update is_professor based on role if role is being changed
+        if "role" in update_data:
+            update_data["is_professor"] = (update_data["role"] == "professor")
         
         for field in update_data:
             setattr(db_obj, field, update_data[field])
