@@ -1,4 +1,6 @@
-from typing import Any, List
+from sqlalchemy.orm import Session
+from pydantic import EmailStr
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -8,6 +10,39 @@ from app import crud, models, schemas
 from app.api import deps
 
 router = APIRouter()
+
+@router.get("/me", response_model=schemas.User)
+def read_user_me(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
+
+@router.put("/me", response_model=schemas.User)
+def update_user_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    password: Optional[str] = Body(None),
+    full_name: Optional[str] = Body(None),
+    email: Optional[EmailStr] = Body(None),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update own user.
+    """
+    current_user_data = jsonable_encoder(current_user)
+    user_in = schemas.UserUpdate(**current_user_data)
+    if password is not None:
+        user_in.password = password
+    if full_name is not None:
+        user_in.full_name = full_name
+    if email is not None:
+        user_in.email = email
+    user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
+    return user
 
 @router.delete("/me", response_model=schemas.User)
 def delete_me(
@@ -130,7 +165,7 @@ def block_user(
     user = crud.user.block_user(db, db_obj=user, reason=block_request.reason, admin_id=current_user.id)
     return user
 
-@router.delete("/me", response_model=schemas.User)
+@router.post("/me/deactivate", response_model=schemas.User)
 def deactivate_me(
     *,
     db: Session = Depends(deps.get_db),
