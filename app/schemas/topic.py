@@ -33,3 +33,8 @@ class Topic(TopicBase):
 
 class TopicWithStages(Topic):
     stages: List[Stage]
+
+class TopicReview(BaseModel):
+    """Schema for approving or rejecting a topic"""
+    approved: bool = Field(..., description="True to approve, False to reject")
+    comment: Optional[str] = Field(None, description="Reason for rejection or feedback")

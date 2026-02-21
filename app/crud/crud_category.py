@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 from app.models.category import Category
+from app.models.topic import Topic
 from app.models.stage import Stage, UserStageProgress
 from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryMetrics
 from typing import List, Optional, Tuple
@@ -79,8 +80,8 @@ def get_categories_enhanced(
     
     for category in categories:
         # Count stages
-        stage_count = db.query(func.count(Stage.id)).filter(
-            and_(Stage.category_id == category.id, Stage.is_active == True)
+        stage_count = db.query(func.count(Stage.id)).join(Topic).filter(
+            and_(Topic.category_id == category.id, Stage.is_active == True)
         ).scalar() or 0
         
         # Calculate similarity if duplicate detection is enabled
@@ -152,8 +153,8 @@ def get_category_metrics(db: Session, category_id: int) -> CategoryMetrics:
     - Average progress across all students
     """
     # Get total stages in category
-    total_stages = db.query(func.count(Stage.id)).filter(
-        and_(Stage.category_id == category_id, Stage.is_active == True)
+    total_stages = db.query(func.count(Stage.id)).join(Topic).filter(
+        and_(Topic.category_id == category_id, Stage.is_active == True)
     ).scalar() or 0
     
     if total_stages == 0:
@@ -167,8 +168,8 @@ def get_category_metrics(db: Session, category_id: int) -> CategoryMetrics:
     # Get all unique students who have progress in this category
     students_with_progress = db.query(
         UserStageProgress.user_id
-    ).join(Stage).filter(
-        Stage.category_id == category_id
+    ).join(Stage).join(Topic).filter(
+        Topic.category_id == category_id
     ).distinct().all()
     
     total_students = len(students_with_progress)
@@ -187,10 +188,10 @@ def get_category_metrics(db: Session, category_id: int) -> CategoryMetrics:
     
     for (student_id,) in students_with_progress:
         # Get student's progress for all stages in this category
-        student_progress = db.query(UserStageProgress).join(Stage).filter(
+        student_progress = db.query(UserStageProgress).join(Stage).join(Topic).filter(
             and_(
                 UserStageProgress.user_id == student_id,
-                Stage.category_id == category_id,
+                Topic.category_id == category_id,
                 Stage.is_active == True
             )
         ).all()
@@ -216,6 +217,6 @@ def get_category_metrics(db: Session, category_id: int) -> CategoryMetrics:
 
 def get_category_stages(db: Session, category_id: int):
     """Get all stages for a category ordered by sequence"""
-    return db.query(Stage).filter(
-        and_(Stage.category_id == category_id, Stage.is_active == True)
-    ).order_by(Stage.order).all()
+    return db.query(Stage).join(Topic).filter(
+        and_(Topic.category_id == category_id, Stage.is_active == True)
+    ).order_by(Topic.id, Stage.order).all()

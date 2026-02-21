@@ -12,94 +12,9 @@ from app.core import media
 router = APIRouter()
 
 
-@router.get("/stages/me", response_model=List[stage_schemas.Stage])
-async def get_my_stages(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_professor)
-):
-    """
-    Get all stages created by the current professor.
-    """
-    return crud_stage.get_stages_by_professor(db, professor_id=current_user.id, skip=skip, limit=limit)
-
-
-@router.get("/categories/{category_id}/stages", response_model=List[stage_schemas.Stage])
-async def get_category_stages(
-    category_id: int,
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
-):
-    """
-    Get all stages for a specific category.
-    Students only see APPROVED stages.
-    Admins see ALL stages in this category.
-    """
-    status_filter = "approved" if not current_user.is_superuser else None
-    stages = crud_stage.get_stages_by_category(db, category_id, skip, limit, status=status_filter)
-    return stages
-
-
-@router.get("/categories/{category_id}/stages/progress", response_model=List[stage_schemas.StageWithProgress])
-async def get_category_stages_with_progress(
-    category_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
-):
-    """
-    Get all stages for a category with user progress information.
-    Shows which stages are locked/unlocked and completed for the current user.
-    
-    The first stage (order=1) is always unlocked.
-    Subsequent stages are locked until the previous stage is completed.
-    
-    Students only see APPROVED stages.
-    """
-    # Get all approved stages for the category
-    stages = crud_stage.get_stages_by_category(db, category_id, status="approved")
-    
-    if not stages:
-        return []
-    
-    # Initialize progress if user hasn't started this category yet
-    existing_progress = crud_stage.get_user_progress_by_category(db, current_user.id, category_id)
-    if not existing_progress:
-        crud_stage.initialize_user_progress_for_category(db, current_user.id, category_id)
-    
-    # Get user progress for all stages
-    progress_map = {}
-    user_progress = crud_stage.get_user_progress_by_category(db, current_user.id, category_id)
-    for progress in user_progress:
-        progress_map[progress.stage_id] = progress
-    
-    # Combine stage data with progress
-    stages_with_progress = []
-    for stage in stages:
-        progress = progress_map.get(stage.id)
-        stage_data = stage_schemas.StageWithProgress(
-            id=stage.id,
-            category_id=stage.category_id,
-            order=stage.order,
-            title=stage.title,
-            description=stage.description,
-            content=stage.content,
-            challenge_description=stage.challenge_description,
-            media_url=stage.media_url,
-            media_type=stage.media_type,
-            media_filename=stage.media_filename,
-            interactive_config=stage.interactive_config,
-            is_active=stage.is_active,
-            is_archived=stage.is_archived,
-            professor_id=stage.professor_id,
-            is_unlocked=progress.is_unlocked if progress else False,
-            is_completed=progress.is_completed if progress else False
-        )
-        stages_with_progress.append(stage_data)
-    
-    return stages_with_progress
+# Note: Endpoints for listing stages by topic are in topics.py
+# GET /topics/{topic_id}/stages/progress - get all stages with progress
+# GET /categories/{category_id}/topics - get approved topics in category
 
 
 @router.get("/stages/{stage_id}", response_model=stage_schemas.Stage)
@@ -203,75 +118,26 @@ async def complete_stage(
     return updated_progress
 
 
-@router.post("/categories/{category_id}/initialize", response_model=List[stage_schemas.UserStageProgress])
-async def initialize_category_progress(
-    category_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
-):
-    """
-    Initialize user progress for all stages in a category.
-    Only the first stage will be unlocked, all others will be locked.
-    This is automatically called when accessing stages with progress,
-    but can be manually triggered if needed.
-    """
-    progress_list = crud_stage.initialize_user_progress_for_category(
-        db, current_user.id, category_id
-    )
-    return progress_list
 
 
-# ================= Admin Review Endpoints =================
-
-@router.get("/review/pending", response_model=List[stage_schemas.Stage])
-async def get_pending_review(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
-):
-    """
-    List all stages pending approval (Admin only).
-    """
-    return crud_stage.get_pending_stages(db, skip=skip, limit=limit)
-
-
-@router.post("/stages/{stage_id}/review", response_model=stage_schemas.Stage)
-async def review_stage(
-    stage_id: int,
-    review: stage_schemas.StageReview,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
-):
-    """
-    Approve or reject a stage (Admin only).
-    If rejected, it remains invisible and includes feedback comments.
-    """
-    review_status = "approved" if review.approved else "rejected"
-    updated_stage = crud_stage.set_approval_status(
-        db, stage_id, status=review_status, comment=review.comment
-    )
-    
-    if not updated_stage:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
-        
-    # TODO: Trigger notification to professor_id
-    
-    return updated_stage
 @router.post("/stages/{stage_id}/interactive", response_model=stage_schemas.Stage)
 async def update_interactive_challenge(
     stage_id: int,
     config: InteractiveConfig,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser)
+    current_user: User = Depends(deps.get_current_active_professor)
 ):
     """
     Configure the interactive challenge (Drag and Drop/Matching) for a stage.
-    Admin only (Professor role).
+    Professor can update their own stages.
     """
+    db_stage = crud_stage.get_stage(db, stage_id)
+    if not db_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    
+    if not current_user.is_superuser and db_stage.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only update your own stages")
+    
     updated_stage = crud_stage.update_stage(
         db, stage_id, stage_schemas.StageUpdate(interactive_config=config)
     )

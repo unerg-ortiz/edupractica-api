@@ -11,17 +11,14 @@ def get_stage(db: Session, stage_id: int) -> Optional[Stage]:
     return db.query(Stage).filter(Stage.id == stage_id).first()
 
 
-def get_stages_by_category(
+def get_stages_by_topic(
     db: Session, 
-    category_id: int, 
+    topic_id: int, 
     skip: int = 0, 
-    limit: int = 100,
-    status: Optional[str] = "approved"
+    limit: int = 100
 ) -> List[Stage]:
-    """Get stages for a category, filtered by status if provided"""
-    query = db.query(Stage).filter(Stage.category_id == category_id, Stage.is_active == True)
-    if status:
-        query = query.filter(Stage.approval_status == status)
+    """Get stages for a topic (approval is checked at topic level, not stage level)"""
+    query = db.query(Stage).filter(Stage.topic_id == topic_id, Stage.is_active == True)
     
     return (
         query.order_by(Stage.order)
@@ -31,16 +28,8 @@ def get_stages_by_category(
     )
 
 
-def get_pending_stages(db: Session, skip: int = 0, limit: int = 100) -> List[Stage]:
-    """Get all stages pending approval (Admin only)"""
-    return (
-        db.query(Stage)
-        .filter(Stage.approval_status == "pending", Stage.is_active == True)
-        .order_by(Stage.submitted_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+# Note: Approval is now at Topic level, not Stage level
+# See crud_topic.get_pending_topics() for admin review functionality
 
 
 def get_stages_by_professor(
@@ -61,14 +50,10 @@ def get_stages_by_professor(
 
 
 def create_stage(db: Session, stage: StageCreate, professor_id: Optional[int] = None) -> Stage:
-    """Create a new stage with professor tracking and pending status"""
+    """Create a new stage (approval is handled at topic level, not stage level)"""
     db_stage = Stage(**stage.model_dump())
     if professor_id:
         db_stage.professor_id = professor_id
-    
-    # Always start as pending unless it's a superuser creating it already approved?
-    # For now, let's keep it pending as per requirements "profesores cargan, admin aprueba"
-    db_stage.approval_status = "pending"
     
     db.add(db_stage)
     db.commit()
@@ -76,24 +61,8 @@ def create_stage(db: Session, stage: StageCreate, professor_id: Optional[int] = 
     return db_stage
 
 
-def set_approval_status(
-    db: Session, 
-    stage_id: int, 
-    status: str, 
-    comment: Optional[str] = None
-) -> Optional[Stage]:
-    """Approve or reject a stage (Admin only)"""
-    db_stage = get_stage(db, stage_id)
-    if not db_stage:
-        return None
-    
-    db_stage.approval_status = status
-    if comment:
-        db_stage.approval_comment = comment
-    
-    db.commit()
-    db.refresh(db_stage)
-    return db_stage
+# Note: Approval is now at Topic level
+# See crud_topic.set_approval_status() for admin review functionality
 
 
 def update_stage(db: Session, stage_id: int, stage_update: StageUpdate) -> Optional[Stage]:
@@ -142,19 +111,19 @@ def get_user_stage_progress(
     )
 
 
-def get_user_progress_by_category(
+def get_user_progress_by_topic(
     db: Session, 
     user_id: int, 
-    category_id: int
+    topic_id: int
 ) -> List[UserStageProgress]:
-    """Get all user progress for stages in a category"""
+    """Get all user progress for stages in a topic"""
     return (
         db.query(UserStageProgress)
         .join(Stage)
         .filter(
             and_(
                 UserStageProgress.user_id == user_id,
-                Stage.category_id == category_id
+                Stage.topic_id == topic_id
             )
         )
         .order_by(Stage.order)
@@ -206,12 +175,12 @@ def complete_stage(db: Session, user_id: int, stage_id: int) -> Optional[UserSta
         db, user_id, stage_id, is_completed=True, is_unlocked=True
     )
     
-    # Find and unlock the next stage
+    # Find and unlock the next stage within the same topic
     next_stage = (
         db.query(Stage)
         .filter(
             and_(
-                Stage.category_id == current_stage.category_id,
+                Stage.topic_id == current_stage.topic_id,
                 Stage.order == current_stage.order + 1,
                 Stage.is_active == True
             )
@@ -228,17 +197,17 @@ def complete_stage(db: Session, user_id: int, stage_id: int) -> Optional[UserSta
     return current_progress
 
 
-def initialize_user_progress_for_category(
+def initialize_user_progress_for_topic(
     db: Session, 
     user_id: int, 
-    category_id: int
+    topic_id: int
 ) -> List[UserStageProgress]:
     """
-    Initialize user progress for all stages in a category.
+    Initialize user progress for all stages in a topic.
     Only the first stage (order=1) is unlocked, all others are locked.
+    Topic approval is checked before calling this function.
     """
-    # Only initialize for approved stages
-    stages = get_stages_by_category(db, category_id, status="approved")
+    stages = get_stages_by_topic(db, topic_id)
     progress_list = []
     
     for stage in stages:

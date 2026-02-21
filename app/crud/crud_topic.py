@@ -30,12 +30,52 @@ def get_topics_by_professor(
 def get_topics_by_category(
     db: Session, 
     category_id: int, 
+    skip: int = 0,
+    limit: int = 100,
     status: Optional[str] = "approved"
 ) -> List[Topic]:
+    """Get topics for a category, optionally filtered by approval status"""
     query = db.query(Topic).filter(Topic.category_id == category_id, Topic.is_active == True)
     if status:
         query = query.filter(Topic.approval_status == status)
-    return query.all()
+    return (
+        query.order_by(Topic.submitted_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_pending_topics(db: Session, skip: int = 0, limit: int = 100) -> List[Topic]:
+    """Get all topics pending approval (Admin only)"""
+    return (
+        db.query(Topic)
+        .filter(Topic.approval_status == "pending", Topic.is_active == True)
+        .order_by(Topic.submitted_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def set_approval_status(
+    db: Session, 
+    topic_id: int, 
+    status: str, 
+    comment: Optional[str] = None
+) -> Optional[Topic]:
+    """Approve or reject a topic (Admin only)"""
+    db_topic = get_topic(db, topic_id)
+    if not db_topic:
+        return None
+    
+    db_topic.approval_status = status
+    if comment:
+        db_topic.approval_comment = comment
+    
+    db.commit()
+    db.refresh(db_topic)
+    return db_topic
 
 
 def create_topic(db: Session, topic: TopicCreate, professor_id: int) -> Topic:
